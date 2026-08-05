@@ -220,9 +220,6 @@ int MicroBit::init()
     NVIC_SetPriority(TIMER4_IRQn, 3);         // Display and Light Sensing.
 
     NVIC_SetPriority(SAADC_IRQn, 5);          // Analogue to Digital Converter (microphone etc)
-    NVIC_SetPriority(PWM0_IRQn, 5);           // General Purpose PWM on edge connector (servo, square wave sounds)
-    NVIC_SetPriority(PWM1_IRQn, 4);           // PCM audio on speaker (high definition sound)
-    NVIC_SetPriority(PWM2_IRQn, 3);           // Waveform Generation (neopixel)
 
     NVIC_SetPriority(RADIO_IRQn, 4);          // Packet radio
     NVIC_SetPriority(UARTE0_UART0_IRQn, 2);   // Serial port
