@@ -242,7 +242,7 @@ int MicroBitAudio::setSleep(bool doSleep)
         if (pwm)
         {
             status |= MICROBIT_AUDIO_STATUS_DEEPSLEEP;
-            disconnectPwm();
+            NRF52ResourceManager::get().pwmRelease(pwm);
         }
         this->micSleepState = this->micEnabled;
         deactivateMic();
@@ -279,7 +279,7 @@ ErrorCode MicroBitAudio::releaseResource(Resource &resource)
 {
     if ((NRF52PWM *)&resource == pwm)
     {
-        disconnectPwm();
+        NRF52ResourceManager::get().pwmRelease(pwm);
         return DEVICE_OK;
     }
     else
@@ -288,12 +288,3 @@ ErrorCode MicroBitAudio::releaseResource(Resource &resource)
     }
 }
 
-void MicroBitAudio::disconnectPwm()
-{
-    NVIC_DisableIRQ(PWM1_IRQn);
-    pwm->disable();
-    pwm->disconnectPin(speaker);
-    pwm->disconnectPin(*pin);
-    delete pwm;
-    pwm = NULL;
-}
