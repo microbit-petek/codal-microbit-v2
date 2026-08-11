@@ -26,7 +26,6 @@ DEALINGS IN THE SOFTWARE.
 #include "MicroBitAudio.h"
 #include "MicroBit.h"
 #include "NRF52PWM.h"
-#include "NRF52ResourceManager.h"
 #include "Synthesizer.h"
 #include "SoundExpressions.h"
 #include "SoundEmojiSynthesizer.h"
@@ -133,13 +132,8 @@ int MicroBitAudio::enable()
 { 
     if (pwm == NULL)
     {
-        ResourceResult result = NRF52ResourceManager::get().pwmAcquire(pwm, MEDIUM, mixer, 44100);
-        if (result != OK)
-        {
-            // Placeholder panic
-            microbit_panic(result);
-        }
-        pwm->setDecoderMode(PWM_DECODER_LOAD_Common);
+        pwm = new NRF52PWM( NRF_PWM1, mixer, 44100 );
+        pwm->setDecoderMode( PWM_DECODER_LOAD_Common );
 
         mixer.setSampleRange( pwm->getSampleRange() );
         mixer.setOrMask( 0x8000 );
@@ -243,16 +237,18 @@ int MicroBitAudio::setSleep(bool doSleep)
 {
     if (doSleep)
     {
-        if (pwm)
-        {
-            status |= MICROBIT_AUDIO_STATUS_DEEPSLEEP;
-
-            pwm->disconnectPin(speaker);
-            pwm->disconnectPin(*pin);
-            (void)NRF52ResourceManager::get().pwmRelease(pwm);
-        }
-        this->micSleepState = this->micEnabled;
-        deactivateMic();
+      if (pwm)
+      {
+          status |= MICROBIT_AUDIO_STATUS_DEEPSLEEP;
+          NVIC_DisableIRQ(PWM1_IRQn);
+          pwm->disable();
+          pwm->disconnectPin(speaker);
+          pwm->disconnectPin(*pin);
+          delete pwm;
+          pwm = NULL;
+      }
+      this->micSleepState = this->micEnabled;
+      deactivateMic();
     }
     else
     {
