@@ -198,9 +198,6 @@ namespace codal
         virtual void periodicCallback();
 
         virtual ErrorCode releaseResource(Resource &resource) override;
-
-        private:
-         void disconnectPwm();
     };
 }
 
