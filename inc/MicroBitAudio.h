@@ -26,6 +26,7 @@ DEALINGS IN THE SOFTWARE.
 #define MICROBIT_AUDIO_H
 
 #include "NRF52PWM.h"
+#include "ResourceConsumer.h"
 #include "SoundEmojiSynthesizer.h"
 #include "SoundExpressions.h"
 #include "SampleSource.h"
@@ -58,7 +59,7 @@ namespace codal
     /**
      * Class definition for MicroBitAudio
      */
-    class MicroBitAudio : public CodalComponent
+    class MicroBitAudio : public CodalComponent, ResourceConsumer
     {
         public:
         static MicroBitAudio    *instance;      // Primary instance of MicroBitAudio, on demand activated.
@@ -195,6 +196,11 @@ namespace codal
         virtual int setSleep(bool doSleep) override;
 
         virtual void periodicCallback();
+
+        virtual ErrorCode releaseResource(Resource &resource) override;
+
+        private:
+         void disconnectPwm();
     };
 }
 

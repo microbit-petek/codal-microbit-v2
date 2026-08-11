@@ -24,8 +24,10 @@ DEALINGS IN THE SOFTWARE.
 */
 
 #include "MicroBitAudio.h"
+#include "ErrorNo.h"
 #include "MicroBit.h"
 #include "NRF52PWM.h"
+#include "NRF52ResourceManager.h"
 #include "Synthesizer.h"
 #include "SoundExpressions.h"
 #include "SoundEmojiSynthesizer.h"
@@ -132,7 +134,7 @@ int MicroBitAudio::enable()
 { 
     if (pwm == NULL)
     {
-        pwm = new NRF52PWM( NRF_PWM1, mixer, 44100 );
+        pwm = NRF52ResourceManager::get().pwmRequest(mixer, NRF_PWM1, 44100);
         pwm->setDecoderMode( PWM_DECODER_LOAD_Common );
 
         mixer.setSampleRange( pwm->getSampleRange() );
@@ -237,18 +239,13 @@ int MicroBitAudio::setSleep(bool doSleep)
 {
     if (doSleep)
     {
-      if (pwm)
-      {
-          status |= MICROBIT_AUDIO_STATUS_DEEPSLEEP;
-          NVIC_DisableIRQ(PWM1_IRQn);
-          pwm->disable();
-          pwm->disconnectPin(speaker);
-          pwm->disconnectPin(*pin);
-          delete pwm;
-          pwm = NULL;
-      }
-      this->micSleepState = this->micEnabled;
-      deactivateMic();
+        if (pwm)
+        {
+            status |= MICROBIT_AUDIO_STATUS_DEEPSLEEP;
+            disconnectPwm();
+        }
+        this->micSleepState = this->micEnabled;
+        deactivateMic();
     }
     else
     {
@@ -276,4 +273,27 @@ bool MicroBitAudio::isPlaying()
             (end == 0 || t < (end + CONFIG_AUDIO_MIXER_OUTPUT_LATENCY_US - 100))
         )
     );
+}
+
+ErrorCode MicroBitAudio::releaseResource(Resource &resource)
+{
+    if ((NRF52PWM *)&resource == pwm)
+    {
+        disconnectPwm();
+        return DEVICE_OK;
+    }
+    else
+    {
+        return DEVICE_INVALID_PARAMETER;
+    }
+}
+
+void MicroBitAudio::disconnectPwm()
+{
+    NVIC_DisableIRQ(PWM1_IRQn);
+    pwm->disable();
+    pwm->disconnectPin(speaker);
+    pwm->disconnectPin(*pin);
+    delete pwm;
+    pwm = NULL;
 }
