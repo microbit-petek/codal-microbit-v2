@@ -60,13 +60,13 @@
     "libraries":[
         {
             "name":"codal-core",
-            "url":"https://github.com/lancaster-university/codal-core",
+            "url":"git@github.com:microbit-petek/codal-core.git",
             "branch":"master",
             "type":"git"
         },
         {
             "name":"codal-nrf52",
-            "url":"https://github.com/lancaster-university/codal-nrf52",
+            "url":"git@github.com:microbit-petek/codal-nrf52.git",
             "branch":"master",
             "type":"git"
         },
