@@ -51,7 +51,7 @@ class MicroBitAccelerometerService : public MicroBitBLEService
       * Create a representation of the AccelerometerService
       * @param _accelerometer An instance of MicroBitAccelerometer.
       */
-    MicroBitAccelerometerService( BLEDevice &_ble, codal::Accelerometer &_accelerometer);
+    MicroBitAccelerometerService( BLEDevice &_ble, codal::Accelerometer &_accelerometer, UartBle &uartBle);
 
     private:
 
@@ -84,6 +84,10 @@ class MicroBitAccelerometerService : public MicroBitBLEService
      * Accelerometer update callback
      */
     void accelerometerUpdate(MicroBitEvent e);
+
+    void serialAccelerometerDataUpdate(MicroBitEvent);
+
+    void serialAccelerometerPeriodUpdate(MicroBitEvent);
 
 	codal::Accelerometer	&accelerometer;
 

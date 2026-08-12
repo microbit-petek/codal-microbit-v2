@@ -31,6 +31,7 @@ DEALINGS IN THE SOFTWARE.
 #if CONFIG_ENABLED(DEVICE_BLE)
 
 #include "MicroBitBLEChar.h"
+#include "UARTBLE.h"
 
 namespace codal
 {
@@ -59,7 +60,7 @@ class MicroBitBLEService
       * @param _ble The instance of a BLE device that we're running on.
       * @param _display An instance of MicroBitDisplay to interface with.
       */
-    MicroBitBLEService();
+    MicroBitBLEService(UartBle &uartBle);
 
     ~MicroBitBLEService();
 
@@ -142,6 +143,8 @@ class MicroBitBLEService
     microbit_servicehandle_t    bs_service_handle;
 
     static const uint8_t        bs_base_uuid[16];
+
+    UartBle &uartBle;
 };
 
 } // namespace codal

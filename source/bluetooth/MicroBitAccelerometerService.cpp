@@ -40,13 +40,15 @@ const uint16_t MicroBitAccelerometerService::charUUID[ mbbs_cIdxCOUNT] = { 0xca4
 
 
 /**
-  * Constructor.
-  * Create a representation of the AccelerometerService
-  * @param _ble The instance of a BLE device that we're running on.
-  * @param _accelerometer An instance of MicroBitAccelerometer.
-  */
-MicroBitAccelerometerService::MicroBitAccelerometerService( BLEDevice &_ble, codal::Accelerometer &_accelerometer) :
-        accelerometer(_accelerometer)
+ * Constructor.
+ * Create a representation of the AccelerometerService
+ * @param _ble The instance of a BLE device that we're running on.
+ * @param _accelerometer An instance of MicroBitAccelerometer.
+ */
+MicroBitAccelerometerService::MicroBitAccelerometerService(BLEDevice &_ble,
+                                                           codal::Accelerometer &_accelerometer,
+                                                           UartBle &uartBle)
+    : MicroBitBLEService(uartBle), accelerometer(_accelerometer)
 {
     // Initialise our characteristic values.
     accelerometerDataCharacteristicBuffer[0] = 0;
@@ -69,8 +71,12 @@ MicroBitAccelerometerService::MicroBitAccelerometerService( BLEDevice &_ble, cod
                          sizeof(accelerometerPeriodCharacteristicBuffer), sizeof(accelerometerPeriodCharacteristicBuffer),
                          microbit_propREAD | microbit_propWRITE);
 
-    if ( getConnected())
-        listen( true);
+    EventModel::defaultEventBus->listen(
+        MICROBIT_ID_SERIAL, ACCELEROMETER_DATA_UPDATE, this,
+        &MicroBitAccelerometerService::serialAccelerometerDataUpdate);
+    EventModel::defaultEventBus->listen(
+        MICROBIT_ID_SERIAL, ACCELEROMETER_PERIOD_UPDATE, this,
+        &MicroBitAccelerometerService::serialAccelerometerPeriodUpdate);
 }
 
 
@@ -109,7 +115,7 @@ void MicroBitAccelerometerService::listen( bool yes)
   */
 void MicroBitAccelerometerService::onConnect( const microbit_ble_evt_t *p_ble_evt)
 {
-    listen( true);
+    uartBle.sendMessage(BLE_CONNECTED, NULL, 0);
 }
 
 
@@ -118,7 +124,7 @@ void MicroBitAccelerometerService::onConnect( const microbit_ble_evt_t *p_ble_ev
   */
 void MicroBitAccelerometerService::onDisconnect( const microbit_ble_evt_t *p_ble_evt)
 {
-    listen( false);
+    uartBle.sendMessage(BLE_DISCONNECTED, NULL, 0);
 }
 
 
@@ -129,13 +135,10 @@ void MicroBitAccelerometerService::onDataWritten( const microbit_ble_evt_write_t
 {
     if (params->handle == valueHandle( mbbs_cIdxPERIOD) && params->len >= sizeof(accelerometerPeriodCharacteristicBuffer))
     {
-        memcpy(&accelerometerPeriodCharacteristicBuffer, params->data, sizeof(accelerometerPeriodCharacteristicBuffer));
-        accelerometer.setPeriod(accelerometerPeriodCharacteristicBuffer);
-
-        // The accelerometer will choose the nearest period to that requested that it can support
-        // Read back the ACTUAL period it is using, and store for next read.
-        accelerometerPeriodCharacteristicBuffer = accelerometer.getPeriod();
-        setChrValue( mbbs_cIdxPERIOD, (const uint8_t *)&accelerometerPeriodCharacteristicBuffer, sizeof(accelerometerPeriodCharacteristicBuffer));
+        memcpy(&accelerometerPeriodCharacteristicBuffer, params->data,
+               sizeof(accelerometerPeriodCharacteristicBuffer));
+        uartBle.sendMessage(ACCELEROMETER_PERIOD_WRITE, &accelerometerPeriodCharacteristicBuffer,
+                            sizeof(accelerometerPeriodCharacteristicBuffer));
     }
 }
 
@@ -145,11 +148,24 @@ void MicroBitAccelerometerService::onDataWritten( const microbit_ble_evt_write_t
   */
 void MicroBitAccelerometerService::accelerometerUpdate(MicroBitEvent)
 {
-    if ( getConnected())
-    {
-        readXYZ();
-        notifyChrValue( mbbs_cIdxDATA, (uint8_t *)accelerometerDataCharacteristicBuffer, sizeof(accelerometerDataCharacteristicBuffer));
-    }
+    readXYZ();
+    uartBle.sendMessage(ACCELEROMETER_DATA_UPDATE, accelerometerDataCharacteristicBuffer,
+                        sizeof(accelerometerDataCharacteristicBuffer));
+}
+
+void MicroBitAccelerometerService::serialAccelerometerDataUpdate(MicroBitEvent)
+{
+    memcpy(accelerometerDataCharacteristicBuffer, uartBle.accelerometerData,
+           sizeof(accelerometerDataCharacteristicBuffer));
+    notifyChrValue(mbbs_cIdxDATA, (uint8_t *)accelerometerDataCharacteristicBuffer,
+                   sizeof(accelerometerDataCharacteristicBuffer));
+}
+
+void MicroBitAccelerometerService::serialAccelerometerPeriodUpdate(MicroBitEvent)
+{
+    accelerometerPeriodCharacteristicBuffer = uartBle.accelerometerPeriodMs;
+    setChrValue(mbbs_cIdxPERIOD, (const uint8_t *)&accelerometerPeriodCharacteristicBuffer,
+                sizeof(accelerometerPeriodCharacteristicBuffer));
 }
 
 #endif

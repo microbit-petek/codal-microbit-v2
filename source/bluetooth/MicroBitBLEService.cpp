@@ -50,9 +50,10 @@ const uint8_t MicroBitBLEService::bs_base_uuid[ 16] =
   * Create a representation of a BLEService
   * @param _ble An instance of MicroBitBLEManager.
   */
-MicroBitBLEService::MicroBitBLEService() :
+MicroBitBLEService::MicroBitBLEService(UartBle &uartBle) :
     bs_uuid_type(0),
-    bs_service_handle(0)
+    bs_service_handle(0),
+    uartBle(uartBle)
 {
     MicroBitBLEServices::getShared()->AddService( this);
 }
