@@ -27,6 +27,7 @@ DEALINGS IN THE SOFTWARE.
   * Class definition for the custom MicroBit Partial Flashing service.
   * Provides a BLE service to remotely write the user program to the device.
   */
+#include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
 #if CONFIG_ENABLED(DEVICE_BLE)
@@ -56,7 +57,8 @@ uint32_t micropython_fs_end   = 0x00;
      * @param _messageBus An instance of a MessageBus to interface with.
      * @param _storage A persistent storage manager to use to hold non-volatile state.
      */
-MicroBitPartialFlashingService::MicroBitPartialFlashingService( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage) :
+MicroBitPartialFlashingService::MicroBitPartialFlashingService( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, UartBle &uartBle) :
+    MicroBitBLEService(uartBle),
     messageBus(_messageBus), storage(_storage)
 {
     // Set up partial flashing characteristic

@@ -122,7 +122,7 @@ class MicroBitUARTService : public MicroBitBLEService
      *
      * @note The default size is MICROBIT_UART_S_DEFAULT_BUF_SIZE (20 bytes).
      */
-    MicroBitUARTService(BLEDevice &_ble, uint8_t rxBufferSize = MICROBIT_UART_S_DEFAULT_BUF_SIZE, uint8_t txBufferSize = MICROBIT_UART_S_DEFAULT_BUF_SIZE);
+    MicroBitUARTService(BLEDevice &_ble, UartBle &uartBle, uint8_t rxBufferSize = MICROBIT_UART_S_DEFAULT_BUF_SIZE, uint8_t txBufferSize = MICROBIT_UART_S_DEFAULT_BUF_SIZE);
 
     /**
       * Retreives a single character from our RxBuffer.

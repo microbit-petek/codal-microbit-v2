@@ -68,7 +68,7 @@ class MicroBitPartialFlashingService : public MicroBitBLEService
       * @param _messageBus An instance of a MessageBus to interface with.
       * @param _storage A persistent storage manager to use to hold non-volatile state.
       */
-    MicroBitPartialFlashingService( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage);
+    MicroBitPartialFlashingService( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, UartBle &uartBle);
 
     /**
      * Set bootloader setting to default

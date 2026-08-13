@@ -27,6 +27,7 @@ DEALINGS IN THE SOFTWARE.
   * Class definition for the custom MicroBit Button Service.
   * Provides a BLE service to remotely read the state of each button, and configure its behaviour.
   */
+#include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
 #if CONFIG_ENABLED(DEVICE_BLE)
@@ -44,7 +45,7 @@ const uint16_t MicroBitButtonService::charUUID[ mbbs_cIdxCOUNT] = { 0xda90, 0xda
   * Create a representation of the ButtonService
   * @param _ble The instance of a BLE device that we're running on.
   */
-MicroBitButtonService::MicroBitButtonService( BLEDevice &_ble)
+MicroBitButtonService::MicroBitButtonService( BLEDevice &_ble, UartBle &uartBle) : MicroBitBLEService(uartBle)
 {
     // Initialise our characteristic values.
     buttonADataCharacteristicBuffer = 0;

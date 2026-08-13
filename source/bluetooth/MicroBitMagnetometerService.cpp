@@ -28,6 +28,7 @@ DEALINGS IN THE SOFTWARE.
   * Provides access to live magnetometer data via BLE, and provides basic configuration options.
   */
   
+#include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
 #if CONFIG_ENABLED(DEVICE_BLE)
@@ -46,7 +47,8 @@ const uint16_t MicroBitMagnetometerService::charUUID[ mbbs_cIdxCOUNT] = { 0xfb11
   * @param _ble The instance of a BLE device that we're running on.
   * @param _compass An instance of MicroBitCompass to use as our Magnetometer source.
   */
-MicroBitMagnetometerService::MicroBitMagnetometerService(BLEDevice &_ble, codal::Compass &_compass) :
+MicroBitMagnetometerService::MicroBitMagnetometerService(BLEDevice &_ble, codal::Compass &_compass, UartBle &uartBle) :
+        MicroBitBLEService(uartBle),
         compass(_compass)
 {
     // Initialise our characteristic values.

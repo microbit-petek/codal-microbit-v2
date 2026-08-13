@@ -27,6 +27,7 @@ DEALINGS IN THE SOFTWARE.
   * Class definition for the custom MicroBit IOPin Service.
   * Provides a BLE service to remotely read the state of the I/O Pin, and configure its behaviour.
   */
+#include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
 #if CONFIG_ENABLED(DEVICE_BLE)
@@ -47,7 +48,8 @@ const uint16_t MicroBitIOPinService::charUUID[ mbbs_cIdxCOUNT] = { 0x5899, 0xb9f
   * @param _io An instance of MicroBitIO that this service will use to perform
   *            I/O operations.
   */
-MicroBitIOPinService::MicroBitIOPinService(BLEDevice &_ble, MicroBitIO &_io) :
+MicroBitIOPinService::MicroBitIOPinService(BLEDevice &_ble, MicroBitIO &_io, UartBle &uartBle) :
+        MicroBitBLEService(uartBle),
         io(_io)
 {
     // Initialise our characteristic values.

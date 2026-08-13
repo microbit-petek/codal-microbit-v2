@@ -59,7 +59,7 @@ class MicroBitEventService : public MicroBitBLEService, MicroBitComponent
       * @param _ble The instance of a BLE device that we're running on.
       * @param _messageBus An instance of an EventModel which events will be mirrored from.
       */
-    MicroBitEventService(BLEDevice &_ble, EventModel &_messageBus);
+    MicroBitEventService(BLEDevice &_ble, EventModel &_messageBus, UartBle &uartBle);
 
     /**
      * Periodic callback from MicroBit scheduler.

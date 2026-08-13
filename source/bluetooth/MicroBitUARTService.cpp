@@ -29,6 +29,7 @@ DEALINGS IN THE SOFTWARE.
   * of an arbitrary number of bytes.
   */
 
+#include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
 #if CONFIG_ENABLED(DEVICE_BLE)
@@ -72,7 +73,7 @@ const uint16_t MicroBitUARTService::charUUID[ mbbs_cIdxCOUNT] = { 0x0002, 0x0003
  *
  * @note defaults to 20
  */
-MicroBitUARTService::MicroBitUARTService(BLEDevice &_ble, uint8_t rxBufferSize, uint8_t txBufferSize)
+MicroBitUARTService::MicroBitUARTService(BLEDevice &_ble, UartBle &uartBle, uint8_t rxBufferSize, uint8_t txBufferSize) : MicroBitBLEService(uartBle)
 {
     // Initialise our characteristic values.
     txBufferHead = 0;

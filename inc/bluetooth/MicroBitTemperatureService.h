@@ -51,7 +51,7 @@ class MicroBitTemperatureService : public MicroBitBLEService
       * Create a representation of the TemperatureService
       * @param _thermometer An instance of MicroBitThermometer to use as our temperature source.
       */
-    MicroBitTemperatureService( BLEDevice &_ble, MicroBitThermometer &_thermometer);
+    MicroBitTemperatureService( BLEDevice &_ble, MicroBitThermometer &_thermometer, UartBle &uartBle);
     
     private:
 

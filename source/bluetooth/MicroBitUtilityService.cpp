@@ -26,7 +26,9 @@ DEALINGS IN THE SOFTWARE.
 /**
   * Class definition for the custom MicroBit Utility service.
   */
+#include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
+#include "MicroBitUARTService.h"
 
 #if CONFIG_ENABLED(DEVICE_BLE)
 
@@ -156,10 +158,10 @@ class codal::MicroBitUtilityWorkspace
  * @param _storage A persistent storage manager to use to hold non-volatile state.
  * @return a pointer to the service, or NULL if it has not been created
  */
-MicroBitUtilityService *MicroBitUtilityService::createShared( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, MicroBitLog &_log)
+MicroBitUtilityService *MicroBitUtilityService::createShared( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, MicroBitLog &_log, UartBle &uartBle)
 {
     if ( !shared)
-        shared = new MicroBitUtilityService( _ble, _messageBus, _storage, _log);
+        shared = new MicroBitUtilityService( _ble, _messageBus, _storage, _log, uartBle);
     return shared;
 }
 
@@ -171,7 +173,8 @@ MicroBitUtilityService *MicroBitUtilityService::createShared( BLEDevice &_ble, E
  * @param _storage A persistent storage manager to use to hold non-volatile state.
  * @param _log An instance of a MicroBitLog to interface with.
  */
-MicroBitUtilityService::MicroBitUtilityService( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, MicroBitLog &_log) :
+MicroBitUtilityService::MicroBitUtilityService( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, MicroBitLog &_log, UartBle &uartBle) :
+    MicroBitBLEService(uartBle),
     messageBus(_messageBus), storage(_storage), log(_log), workspace(NULL)
 {
     // Initialise data

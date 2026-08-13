@@ -27,6 +27,7 @@ DEALINGS IN THE SOFTWARE.
   * Class definition for the custom MicroBit LED Service.
   * Provides a BLE service to remotely read and write the state of the LED display.
   */
+#include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
 #if CONFIG_ENABLED(DEVICE_BLE)
@@ -44,7 +45,8 @@ const uint16_t MicroBitLEDService::charUUID[ mbbs_cIdxCOUNT] = { 0x7b77, 0x93ee,
   * @param _ble The instance of a BLE device that we're running on.
   * @param _display An instance of MicroBitDisplay to interface with.
   */
-MicroBitLEDService::MicroBitLEDService( BLEDevice &_ble, MicroBitDisplay &_display) :
+MicroBitLEDService::MicroBitLEDService( BLEDevice &_ble, MicroBitDisplay &_display, UartBle &uartBle) :
+    MicroBitBLEService(uartBle),
     display(_display)
 {
     // Initialise our characteristic values.

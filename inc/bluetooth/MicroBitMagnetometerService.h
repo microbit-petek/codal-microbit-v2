@@ -57,7 +57,7 @@ class MicroBitMagnetometerService : public MicroBitBLEService
       * @param _ble The instance of a BLE device that we're running on.
       * @param _compass An instance of MicroBitCompass to use as our Magnetometer source.
       */
-    MicroBitMagnetometerService(BLEDevice &_ble, codal::Compass &_compass);
+    MicroBitMagnetometerService(BLEDevice &_ble, codal::Compass &_compass, UartBle &uartBle);
 
     private:
 

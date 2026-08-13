@@ -74,7 +74,7 @@ class MicroBitUtilityService : public MicroBitBLEService
      * @param _log a log storage manager to read stored data.
      * @return a pointer to the service, or NULL if it has not been created
      */
-    static MicroBitUtilityService *createShared( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, MicroBitLog &_log);
+    static MicroBitUtilityService *createShared( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, MicroBitLog &_log, UartBle &uartBle);
 
     public:
     /**
@@ -84,7 +84,7 @@ class MicroBitUtilityService : public MicroBitBLEService
      * @param _storage A persistent storage manager to use to hold non-volatile state.
      * @param _log a log storage manager to read stored data.
      */
-    MicroBitUtilityService( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, MicroBitLog &_log);
+    MicroBitUtilityService( BLEDevice &_ble, EventModel &_messageBus, MicroBitStorage &_storage, MicroBitLog &_log, UartBle &uartBle);
 
     private:
     /**

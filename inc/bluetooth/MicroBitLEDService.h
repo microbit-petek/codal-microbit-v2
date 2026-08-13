@@ -55,7 +55,7 @@ class MicroBitLEDService : public MicroBitBLEService
       * @param _ble The instance of a BLE device that we're running on.
       * @param _display An instance of MicroBitDisplay to interface with.
       */
-    MicroBitLEDService( BLEDevice &_ble, MicroBitDisplay &_display);
+    MicroBitLEDService( BLEDevice &_ble, MicroBitDisplay &_display, UartBle &uartBle);
 
     /**
       * Callback. Invoked when any of our attributes are written via BLE.

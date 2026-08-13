@@ -28,6 +28,7 @@ DEALINGS IN THE SOFTWARE.
   * Provides a BLE gateway onto an Event Model.
   */
 
+#include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
 #if CONFIG_ENABLED(DEVICE_BLE)
@@ -48,7 +49,8 @@ const uint16_t MicroBitEventService::charUUID[ mbbs_cIdxCOUNT] = { 0x9775, 0xb84
   * @param _ble The instance of a BLE device that we're running on.
   * @param _messageBus An instance of an EventModel which events will be mirrored from.
   */
-MicroBitEventService::MicroBitEventService(BLEDevice &_ble, EventModel &_messageBus) :
+MicroBitEventService::MicroBitEventService(BLEDevice &_ble, EventModel &_messageBus, UartBle &uartBle) :
+        MicroBitBLEService(uartBle),
         messageBus(_messageBus)
 {
     // Initialise our characteristic values.
