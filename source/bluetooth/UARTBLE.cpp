@@ -3,7 +3,7 @@
 
 using namespace codal;
 
-UartBle::UartBle(NRF52Serial &serial, MicroBitAccelerometer &accelerometer)
+UartBle::UartBle(NRF52Serial &serial, Accelerometer &accelerometer)
     : serial(serial), accelerometer(accelerometer)
 {
 }

@@ -1,4 +1,5 @@
-#include "MicroBitAccelerometer.h"
+#include "Accelerometer.h"
+#include "MicroBitCompat.h"
 #include "NRF52Serial.h"
 
 enum UartBleMessageId
@@ -17,12 +18,12 @@ class UartBle
 {
 public:
     NRF52Serial &serial;
-    MicroBitAccelerometer &accelerometer;
+    Accelerometer &accelerometer;
 
     uint16_t accelerometerData[3];
     uint16_t accelerometerPeriodMs;
 
-    UartBle(NRF52Serial &serial, MicroBitAccelerometer &accelerometer);
+    UartBle(NRF52Serial &serial, Accelerometer &accelerometer);
 
     void runRx();
 
