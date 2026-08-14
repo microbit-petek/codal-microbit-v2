@@ -115,7 +115,6 @@ void MicroBitAccelerometerService::listen( bool yes)
   */
 void MicroBitAccelerometerService::onConnect( const microbit_ble_evt_t *p_ble_evt)
 {
-    uartBle.sendMessage(BLE_CONNECTED, NULL, 0);
 }
 
 
@@ -124,7 +123,6 @@ void MicroBitAccelerometerService::onConnect( const microbit_ble_evt_t *p_ble_ev
   */
 void MicroBitAccelerometerService::onDisconnect( const microbit_ble_evt_t *p_ble_evt)
 {
-    uartBle.sendMessage(BLE_DISCONNECTED, NULL, 0);
 }
 
 

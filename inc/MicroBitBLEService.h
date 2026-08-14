@@ -98,6 +98,8 @@ class MicroBitBLEService
     
     public:
     
+    UartBle &uartBle;
+
     microbit_gaphandle_t getConnectionHandle();
     
     bool getConnected();
@@ -144,7 +146,6 @@ class MicroBitBLEService
 
     static const uint8_t        bs_base_uuid[16];
 
-    UartBle &uartBle;
 };
 
 } // namespace codal
