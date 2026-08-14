@@ -33,5 +33,15 @@ public:
 
 private:
     Fiber *rx_fiber;
+
+    void handleAccelerometerDataUpdate();
+
+    void handleAccelerometerPeriodWrite();
+
+    void handleAccelerometerPeriodUpdate();
+
+    void handleBleConnected();
+
+    void handleBleDisconnected();
 };
 } // namespace codal
