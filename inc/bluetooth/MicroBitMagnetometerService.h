@@ -32,8 +32,6 @@ DEALINGS IN THE SOFTWARE.
 
 #include "MicroBitBLEManager.h"
 #include "MicroBitBLEService.h"
-#include "MicroBitCompass.h"
-#include "EventModel.h"
 
 #define COMPASS_CALIBRATION_STATUS_UNKNOWN 0
 #define COMPASS_CALIBRATION_REQUESTED      1
@@ -107,6 +105,15 @@ class MicroBitMagnetometerService : public MicroBitBLEService
      * Handle compass events such as calibration requests
      */
     void compassEvents(MicroBitEvent e);
+
+    void serialOnConnected(MicroBitEvent);
+    void serialOnDisconnected(MicroBitEvent);
+    void serialDataUpdate(MicroBitEvent);
+    void serialBearingUpdate(MicroBitEvent);
+    void serialPeriodWrite(MicroBitEvent);
+    void serialPeriodUpdate(MicroBitEvent);
+    void serialCalibrationUpdate(MicroBitEvent);
+    void serialCalibrationRequested(MicroBitEvent);
 
     // Compass we're using.
     codal::Compass     &compass;

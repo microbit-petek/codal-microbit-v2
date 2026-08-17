@@ -64,7 +64,38 @@ void UartBle::runRx()
             handleBleDisconnected();
             break;
         }
+        case MAGNETOMETER_DATA_UPDATE:
+        {
+            handleMagnetometerDataUpdate();
+            break;
+        }
+        case MAGNETOMETER_BEARING_UPDATE:
+        {
+            handleMagnetometerBearingUpdate();
+            break;
+        }
+        case MAGNETOMETER_PERIOD_WRITE:
+        {
+            handleMagnetometerPeriodWrite();
+            break;
+        }
+        case MAGNETOMETER_PERIOD_UPDATE:
+        {
+            handleMagnetometerPeriodUpdate();
+            break;
+        }
+        case MAGNETOMETER_CALIBRATION_UPDATE:
+            {
+                handleMagnetometerCalibrationUpdate();
+                break;
+            }
+        case MAGNETOMETER_CALIBRATION_REQUESTED:
+            {
+                handleMagnetometerCalibrationRequested();
+                break;
+            }
         case UARTBLEMESSAGEID_MAX:
+        case ID_RESERVED:
         {
             continue;
         }
@@ -74,9 +105,7 @@ void UartBle::runRx()
 
 void UartBle::handleAccelerometerDataUpdate()
 {
-    serial.read((uint8_t *)&accelerometerData[0], sizeof(accelerometerData[0]));
-    serial.read((uint8_t *)&accelerometerData[1], sizeof(accelerometerData[1]));
-    serial.read((uint8_t *)&accelerometerData[2], sizeof(accelerometerData[2]));
+    serial.read((uint8_t *)&accelerometerData, sizeof(accelerometerData));
     Event(MICROBIT_ID_SERIAL, ACCELEROMETER_DATA_UPDATE);
 }
 
@@ -98,20 +127,45 @@ void UartBle::handleAccelerometerPeriodUpdate()
 
 void UartBle::handleBleConnected()
 {
-    accelerometerData[0] = accelerometer.getX();
-    accelerometerData[1] = accelerometer.getY();
-    accelerometerData[2] = accelerometer.getZ();
-    accelerometerPeriodMs = accelerometer.getPeriod();
-    EventModel::defaultEventBus->listen(MICROBIT_ID_ACCELEROMETER,
-                                        MICROBIT_ACCELEROMETER_EVT_DATA_UPDATE, this,
-                                        &UartBle::accelerometerDataHandler);
-    sendMessage(ACCELEROMETER_DATA_UPDATE, accelerometerData, sizeof(accelerometerData));
-    sendMessage(ACCELEROMETER_PERIOD_UPDATE, &accelerometerPeriodMs, sizeof(accelerometerPeriodMs));
+    Event(MICROBIT_ID_SERIAL, BLE_CONNECTED);
 }
 
 void UartBle::handleBleDisconnected()
 {
-    EventModel::defaultEventBus->ignore(MICROBIT_ID_ACCELEROMETER,
-                                        MICROBIT_ACCELEROMETER_EVT_DATA_UPDATE, this,
-                                        &UartBle::accelerometerDataHandler);
+    Event(MICROBIT_ID_SERIAL, BLE_DISCONNECTED);
+}
+
+void UartBle::handleMagnetometerDataUpdate()
+{
+    serial.read((uint8_t *)&magnetometerData, sizeof(magnetometerData));
+    Event(MICROBIT_ID_SERIAL, MAGNETOMETER_DATA_UPDATE);
+}
+
+void UartBle::handleMagnetometerBearingUpdate()
+{
+    serial.read((uint8_t *)&magnetometerBearing, sizeof(magnetometerBearing));
+    Event(MICROBIT_ID_SERIAL, MAGNETOMETER_BEARING_UPDATE);
+}
+
+void UartBle::handleMagnetometerPeriodWrite()
+{
+    serial.read((uint8_t *)&magnetometerPeriodMs, sizeof(magnetometerPeriodMs));
+    Event(MICROBIT_ID_SERIAL, MAGNETOMETER_PERIOD_WRITE);
+}
+
+void UartBle::handleMagnetometerPeriodUpdate()
+{
+    serial.read((uint8_t *)&magnetometerPeriodMs, sizeof(magnetometerPeriodMs));
+    Event(MICROBIT_ID_SERIAL, MAGNETOMETER_PERIOD_UPDATE);
+}
+
+void UartBle::handleMagnetometerCalibrationUpdate()
+{
+    magnetometerCalibration = serial.read();
+    Event(MICROBIT_ID_SERIAL, MAGNETOMETER_CALIBRATION_UPDATE);
+}
+
+void UartBle::handleMagnetometerCalibrationRequested()
+{
+    Event(MICROBIT_ID_SERIAL, MAGNETOMETER_CALIBRATION_REQUESTED);
 }

@@ -4,11 +4,18 @@
 
 enum UartBleMessageId
 {
+    ID_RESERVED,
     BLE_CONNECTED,
     BLE_DISCONNECTED,
     ACCELEROMETER_DATA_UPDATE,
     ACCELEROMETER_PERIOD_WRITE,
     ACCELEROMETER_PERIOD_UPDATE,
+    MAGNETOMETER_DATA_UPDATE,
+    MAGNETOMETER_BEARING_UPDATE,
+    MAGNETOMETER_PERIOD_WRITE,
+    MAGNETOMETER_PERIOD_UPDATE,
+    MAGNETOMETER_CALIBRATION_UPDATE,
+    MAGNETOMETER_CALIBRATION_REQUESTED,
     UARTBLEMESSAGEID_MAX
 };
 
@@ -22,6 +29,11 @@ public:
 
     uint16_t accelerometerData[3];
     uint16_t accelerometerPeriodMs;
+
+    int16_t magnetometerData[3];
+    uint16_t magnetometerBearing;
+    uint16_t magnetometerPeriodMs;
+    uint8_t magnetometerCalibration;
 
     UartBle(NRF52Serial &serial, Accelerometer &accelerometer);
 
@@ -43,5 +55,12 @@ private:
     void handleBleConnected();
 
     void handleBleDisconnected();
+
+    void handleMagnetometerDataUpdate();
+    void handleMagnetometerBearingUpdate();
+    void handleMagnetometerPeriodWrite();
+    void handleMagnetometerPeriodUpdate();
+    void handleMagnetometerCalibrationUpdate();
+    void handleMagnetometerCalibrationRequested();
 };
 } // namespace codal
