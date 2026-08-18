@@ -1,5 +1,3 @@
-#include "Accelerometer.h"
-#include "MicroBitCompat.h"
 #include "NRF52Serial.h"
 
 enum UartBleMessageId
@@ -25,7 +23,6 @@ class UartBle
 {
 public:
     NRF52Serial &serial;
-    Accelerometer &accelerometer;
 
     uint16_t accelerometerData[3];
     uint16_t accelerometerPeriodMs;
@@ -35,32 +32,13 @@ public:
     uint16_t magnetometerPeriodMs;
     uint8_t magnetometerCalibration;
 
-    UartBle(NRF52Serial &serial, Accelerometer &accelerometer);
+    UartBle(NRF52Serial &serial);
 
     void runRx();
 
     void sendMessage(uint8_t const id, void const *const payload, uint8_t const payloadLength);
 
-    void accelerometerDataHandler(MicroBitEvent const);
-
 private:
     Fiber *rx_fiber;
-
-    void handleAccelerometerDataUpdate();
-
-    void handleAccelerometerPeriodWrite();
-
-    void handleAccelerometerPeriodUpdate();
-
-    void handleBleConnected();
-
-    void handleBleDisconnected();
-
-    void handleMagnetometerDataUpdate();
-    void handleMagnetometerBearingUpdate();
-    void handleMagnetometerPeriodWrite();
-    void handleMagnetometerPeriodUpdate();
-    void handleMagnetometerCalibrationUpdate();
-    void handleMagnetometerCalibrationRequested();
 };
 } // namespace codal
