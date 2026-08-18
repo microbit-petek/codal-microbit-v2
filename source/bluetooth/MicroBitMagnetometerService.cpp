@@ -87,25 +87,25 @@ MicroBitMagnetometerService::MicroBitMagnetometerService(BLEDevice &_ble, codal:
                          sizeof(magnetometerCalibrationCharacteristicBuffer),
                          microbit_propWRITE | microbit_propNOTIFY);
 
-    EventModel::defaultEventBus->listen(MICROBIT_ID_SERIAL, BLE_CONNECTED, this,
+    EventModel::defaultEventBus->listen(UARTBLE_ID, BLE_CONNECTED, this,
                                         &MicroBitMagnetometerService::serialOnConnected);
-    EventModel::defaultEventBus->listen(MICROBIT_ID_SERIAL, BLE_DISCONNECTED, this,
+    EventModel::defaultEventBus->listen(UARTBLE_ID, BLE_DISCONNECTED, this,
                                         &MicroBitMagnetometerService::serialOnDisconnected);
-    EventModel::defaultEventBus->listen(MICROBIT_ID_SERIAL, MAGNETOMETER_DATA_UPDATE, this,
+    EventModel::defaultEventBus->listen(UARTBLE_ID, MAGNETOMETER_DATA_UPDATE, this,
                                         &MicroBitMagnetometerService::serialDataUpdate);
     EventModel::defaultEventBus->listen(
-        MICROBIT_ID_SERIAL, MAGNETOMETER_BEARING_UPDATE, this,
+        UARTBLE_ID, MAGNETOMETER_BEARING_UPDATE, this,
         &MicroBitMagnetometerService::serialBearingUpdate);
     EventModel::defaultEventBus->listen(
-        MICROBIT_ID_SERIAL, MAGNETOMETER_PERIOD_WRITE, this,
+        UARTBLE_ID, MAGNETOMETER_PERIOD_WRITE, this,
         &MicroBitMagnetometerService::serialPeriodWrite);
     EventModel::defaultEventBus->listen(
-        MICROBIT_ID_SERIAL, MAGNETOMETER_PERIOD_UPDATE, this,
+        UARTBLE_ID, MAGNETOMETER_PERIOD_UPDATE, this,
         &MicroBitMagnetometerService::serialPeriodUpdate);
     EventModel::defaultEventBus->listen(
-        MICROBIT_ID_SERIAL, MAGNETOMETER_CALIBRATION_UPDATE, this,
+        UARTBLE_ID, MAGNETOMETER_CALIBRATION_UPDATE, this,
         &MicroBitMagnetometerService::serialCalibrationUpdate);
-    EventModel::defaultEventBus->listen(MICROBIT_ID_SERIAL, MAGNETOMETER_CALIBRATION_REQUESTED, this, &MicroBitMagnetometerService::serialCalibrationRequested);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, MAGNETOMETER_CALIBRATION_REQUESTED, this, &MicroBitMagnetometerService::serialCalibrationRequested);
 }
 
 /**

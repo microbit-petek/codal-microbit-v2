@@ -76,6 +76,6 @@ void UartBle::runRx()
         }
         }
 
-        Event(MICROBIT_ID_SERIAL, rawId);
+        Event(UARTBLE_ID, rawId);
     }
 }

@@ -1,5 +1,7 @@
 #include "NRF52Serial.h"
 
+#define UARTBLE_ID 0xbeef
+
 enum UartBleMessageId
 {
     ID_RESERVED,

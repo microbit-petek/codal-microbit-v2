@@ -32,8 +32,6 @@ DEALINGS IN THE SOFTWARE.
 
 #include "MicroBitBLEManager.h"
 #include "MicroBitBLEService.h"
-#include "MicroBitAccelerometer.h"
-#include "EventModel.h"
 
 namespace codal
 {
@@ -85,9 +83,11 @@ class MicroBitAccelerometerService : public MicroBitBLEService
      */
     void accelerometerUpdate(MicroBitEvent e);
 
-    void serialAccelerometerDataUpdate(MicroBitEvent);
-
-    void serialAccelerometerPeriodUpdate(MicroBitEvent);
+    void serialBleConnected(Event);
+    void serialBleDisconnected(Event);
+    void serialDataUpdate(Event);
+    void serialPeriodWrite(Event);
+    void serialPeriodUpdate(Event);
 
 	codal::Accelerometer	&accelerometer;
 
