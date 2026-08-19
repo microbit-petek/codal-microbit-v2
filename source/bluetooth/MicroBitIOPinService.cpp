@@ -347,13 +347,13 @@ void MicroBitIOPinService::onDataRead(microbit_onDataRead_t *params)
 void MicroBitIOPinService::serialDataRequest(Event)
 {
     int pairs = updateBLEInputs(true);
-        uint8_t const dataLength = (sizeof(IOData) * pairs);
-        uint8_t const payloadLength = dataLength + 1;
-        uint8_t *const payloadBuffer = new uint8_t[payloadLength];
-        payloadBuffer[0] = dataLength;
-        memcpy(&payloadBuffer[1], ioPinServiceIOData, dataLength);
-        uartBle.sendMessage(PIN_DATA_UPDATE, payloadBuffer, payloadLength);
-        delete[] payloadBuffer;
+    uint8_t const dataLength = (sizeof(IOData) * pairs);
+    uint8_t const payloadLength = dataLength + 1;
+    uint8_t *const payloadBuffer = new uint8_t[payloadLength];
+    payloadBuffer[0] = dataLength;
+    memcpy(&payloadBuffer[1], ioPinServiceDataCharacteristicBuffer, dataLength);
+    uartBle.sendMessage(PIN_DATA_UPDATE, payloadBuffer, payloadLength);
+    delete[] payloadBuffer;
 }
 
 /**
@@ -372,7 +372,7 @@ void MicroBitIOPinService::idleCallback()
         uint8_t const payloadLength = dataLength + 1;
         uint8_t *const payloadBuffer = new uint8_t[payloadLength];
         payloadBuffer[0] = dataLength;
-        memcpy(&payloadBuffer[1], ioPinServiceIOData, dataLength);
+        memcpy(&payloadBuffer[1], ioPinServiceDataCharacteristicBuffer, dataLength);
         uartBle.sendMessage(PIN_DATA_UPDATE, payloadBuffer, payloadLength);
         delete[] payloadBuffer;
     }
