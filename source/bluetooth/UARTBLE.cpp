@@ -59,7 +59,7 @@ void UartBle::runRx()
             magnetometerCalibration = serial.read();
             break;
         }
-        case MAGNETOMETER_CALIBRATION_REQUESTED:
+        case MAGNETOMETER_CALIBRATION_REQUEST:
         {
             break;
         }

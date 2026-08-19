@@ -105,7 +105,7 @@ MicroBitMagnetometerService::MicroBitMagnetometerService(BLEDevice &_ble, codal:
     EventModel::defaultEventBus->listen(
         UARTBLE_ID, MAGNETOMETER_CALIBRATION_UPDATE, this,
         &MicroBitMagnetometerService::serialCalibrationUpdate);
-    EventModel::defaultEventBus->listen(UARTBLE_ID, MAGNETOMETER_CALIBRATION_REQUESTED, this, &MicroBitMagnetometerService::serialCalibrationRequested);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, MAGNETOMETER_CALIBRATION_REQUEST, this, &MicroBitMagnetometerService::serialCalibrationRequested);
 }
 
 /**
@@ -249,7 +249,7 @@ void MicroBitMagnetometerService::onDataWritten(const microbit_ble_evt_write_t *
         if (magnetometerCalibrationCharacteristicBuffer == COMPASS_CALIBRATION_REQUESTED)
         {
             // MicroBitEvent evt(MICROBIT_ID_COMPASS, MICROBIT_COMPASS_EVT_CALIBRATION_NEEDED);
-            uartBle.sendMessage(MAGNETOMETER_CALIBRATION_REQUESTED, NULL, 0);
+            uartBle.sendMessage(MAGNETOMETER_CALIBRATION_REQUEST, NULL, 0);
         }
         return;
     }
