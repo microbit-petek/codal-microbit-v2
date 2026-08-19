@@ -378,7 +378,7 @@ void MicroBitIOPinService::idleCallback()
 
 void MicroBitIOPinService::serialDataUpdate(Event)
 {
-    if (getConnected())
+    if (getConnected() && (uartBle.pinData->length > 0))
     {
         memcpy(ioPinServiceDataCharacteristicBuffer, uartBle.pinData->data,
                uartBle.pinData->length);
