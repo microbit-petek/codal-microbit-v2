@@ -154,7 +154,9 @@ class MicroBitIOPinService : public MicroBitBLEService, MicroBitComponent
 
     // memory for our characteristics.
     uint32_t            ioPinServiceADCharacteristicBuffer;
+    uint32_t            ioPinServiceADSetting;
     uint32_t            ioPinServiceIOCharacteristicBuffer;
+    uint32_t            ioPinServiceIOSetting;
     IOPWMData           ioPinServicePWMCharacteristicBuffer[MICROBIT_PWM_PIN_SERVICE_DATA_SIZE];
     IOData              ioPinServiceDataCharacteristicBuffer[MICROBIT_IO_PIN_SERVICE_DATA_SIZE];
 

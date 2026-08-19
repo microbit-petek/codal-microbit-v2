@@ -53,6 +53,8 @@ MicroBitIOPinService::MicroBitIOPinService(BLEDevice &_ble, MicroBitIO &_io, Uar
     // Initialise our characteristic values.
     ioPinServiceADCharacteristicBuffer = 0;
     ioPinServiceIOCharacteristicBuffer = 0;
+    ioPinServiceADSetting = 0;
+    ioPinServiceIOSetting = 0;
     memset(ioPinServiceIOData, 0, sizeof(ioPinServiceIOData));
     memset(ioPinServicePWMCharacteristicBuffer, 0,
            sizeof(ioPinServicePWMCharacteristicBuffer)); // Create the AD characteristic, that
@@ -120,7 +122,7 @@ MicroBitPin &MicroBitIOPinService::edgePin(int index)
  */
 int MicroBitIOPinService::isDigital(int i)
 {
-    return ((ioPinServiceADCharacteristicBuffer & (1 << i)) == 0);
+    return ((ioPinServiceADSetting & (1 << i)) == 0);
 }
 
 /**
@@ -132,7 +134,7 @@ int MicroBitIOPinService::isDigital(int i)
  */
 int MicroBitIOPinService::isAnalog(int i)
 {
-    return ((ioPinServiceADCharacteristicBuffer & (1 << i)) != 0);
+    return ((ioPinServiceADSetting & (1 << i)) != 0);
 }
 
 /**
@@ -144,7 +146,7 @@ int MicroBitIOPinService::isAnalog(int i)
  */
 int MicroBitIOPinService::isActiveInput(int i)
 {
-    return ((ioPinServiceIOCharacteristicBuffer & (1 << i)) != 0);
+    return ((ioPinServiceIOSetting & (1 << i)) != 0);
 }
 
 /**
@@ -194,13 +196,6 @@ void MicroBitIOPinService::onDataWritten(const microbit_ble_evt_write_t *params)
     if (params->handle == valueHandle(mbbs_cIdxIO) &&
         params->len >= sizeof(ioPinServiceIOCharacteristicBuffer))
     {
-        uint32_t *value = (uint32_t *)params->data;
-
-        // Our IO configuration may be changing... read the new value, and push it back into the BLE
-        // stack.
-        ioPinServiceIOCharacteristicBuffer = *value;
-        setChrValue(mbbs_cIdxIO, (const uint8_t *)&ioPinServiceIOCharacteristicBuffer,
-                    sizeof(ioPinServiceIOCharacteristicBuffer));
         uartBle.sendMessage(PIN_IO_CONFIGURATION_WRITE, &ioPinServiceIOCharacteristicBuffer,
                             sizeof(ioPinServiceIOCharacteristicBuffer));
     }
@@ -209,13 +204,6 @@ void MicroBitIOPinService::onDataWritten(const microbit_ble_evt_write_t *params)
     if (params->handle == valueHandle(mbbs_cIdxADC) &&
         params->len >= sizeof(ioPinServiceADCharacteristicBuffer))
     {
-        uint32_t *value = (uint32_t *)params->data;
-
-        // Our IO configuration may be changing... read the new value, and push it back into the BLE
-        // stack.
-        ioPinServiceADCharacteristicBuffer = *value;
-        setChrValue(mbbs_cIdxADC, (const uint8_t *)&ioPinServiceADCharacteristicBuffer,
-                    sizeof(ioPinServiceADCharacteristicBuffer));
         uartBle.sendMessage(PIN_AD_CONFIGURATION_WRITE, &ioPinServiceADCharacteristicBuffer,
                             sizeof(ioPinServiceADCharacteristicBuffer));
     }
@@ -266,7 +254,7 @@ void MicroBitIOPinService::serialDataWrite(Event)
 
 void MicroBitIOPinService::serialADConfigurationWrite(Event)
 {
-    ioPinServiceADCharacteristicBuffer = uartBle.pinADConfiguration;
+    ioPinServiceADSetting = uartBle.pinADConfiguration;
 
     // Also, drop any selected pins into input mode, so we can pick up changes later
     for (int i = 0; i < MICROBIT_IO_PIN_SERVICE_PINCOUNT; i++)
@@ -280,7 +268,7 @@ void MicroBitIOPinService::serialADConfigurationWrite(Event)
 }
 void MicroBitIOPinService::serialIOConfigurationWrite(Event)
 {
-    ioPinServiceIOCharacteristicBuffer = uartBle.pinIOConfiguration;
+    ioPinServiceIOSetting = uartBle.pinIOConfiguration;
 
     // Also, drop any selected pins into input mode, so we can pick up changes later
     for (int i = 0; i < MICROBIT_IO_PIN_SERVICE_PINCOUNT; i++)
