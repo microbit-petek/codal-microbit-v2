@@ -353,6 +353,7 @@ void MicroBitIOPinService::serialDataRequest(Event)
         payloadBuffer[0] = dataLength;
         memcpy(&payloadBuffer[1], ioPinServiceIOData, dataLength);
         uartBle.sendMessage(PIN_DATA_UPDATE, payloadBuffer, payloadLength);
+        delete[] payloadBuffer;
 }
 
 /**
@@ -373,6 +374,7 @@ void MicroBitIOPinService::idleCallback()
         payloadBuffer[0] = dataLength;
         memcpy(&payloadBuffer[1], ioPinServiceIOData, dataLength);
         uartBle.sendMessage(PIN_DATA_UPDATE, payloadBuffer, payloadLength);
+        delete[] payloadBuffer;
     }
 }
 
