@@ -139,6 +139,15 @@ class MicroBitIOPinService : public MicroBitBLEService, MicroBitComponent
       * @return a reference to the pin
       */
     MicroBitPin &edgePin( int index);
+
+    void serialDataWrite(Event);
+    void serialDataUpdate(Event);
+    void serialDataRequest(Event);
+    void serialADConfigurationWrite(Event);
+    void serialADConfigurationUpdate(Event);
+    void serialIOConfigurationWrite(Event);
+    void serialIOConfigurationUpdate(Event);
+    void serialPwmWrite(Event);
     
     // IO we're using
     MicroBitIO          &io;

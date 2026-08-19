@@ -16,7 +16,25 @@ enum UartBleMessageId
     MAGNETOMETER_PERIOD_UPDATE,
     MAGNETOMETER_CALIBRATION_UPDATE,
     MAGNETOMETER_CALIBRATION_REQUESTED,
+    PIN_DATA_WRITE,
+    PIN_DATA_UPDATE,
+    PIN_DATA_REQUEST,
+    PIN_AD_CONFIGURATION_WRITE,
+    PIN_IO_CONFIGURATION_WRITE,
+    PIN_PWM_WRITE,
     UARTBLEMESSAGEID_MAX
+};
+
+struct PinDataWritePayload
+{
+    uint8_t length;
+    uint8_t data[];
+};
+
+struct PinPwmWritePayload
+{
+    uint8_t length;
+    uint8_t data[];
 };
 
 namespace codal
@@ -33,6 +51,11 @@ public:
     uint16_t magnetometerBearing;
     uint16_t magnetometerPeriodMs;
     uint8_t magnetometerCalibration;
+
+    PinDataWritePayload *pinData = NULL;
+    uint32_t pinADConfiguration;
+    uint32_t pinIOConfiguration;
+    PinPwmWritePayload *pinPwmControl = NULL;
 
     UartBle(NRF52Serial &serial);
 

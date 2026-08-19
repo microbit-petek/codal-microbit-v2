@@ -1,5 +1,4 @@
 #include "UARTBLE.h"
-#include "MicroBitCompat.h"
 
 using namespace codal;
 
@@ -62,6 +61,49 @@ void UartBle::runRx()
         }
         case MAGNETOMETER_CALIBRATION_REQUESTED:
         {
+            break;
+        }
+        case PIN_DATA_WRITE:
+        case PIN_DATA_UPDATE:
+        {
+            if (NULL != pinData)
+            {
+                delete[] pinData;
+                pinData = NULL;
+            }
+
+            uint8_t const length = serial.read();
+            pinData = (PinDataWritePayload *)new uint8_t[length + sizeof(length)];
+            pinData->length = length;
+            serial.read(pinData->data, length);
+            break;
+        }
+        case PIN_DATA_REQUEST:
+        {
+            break;
+        }
+        case PIN_AD_CONFIGURATION_WRITE:
+        {
+            serial.read((uint8_t *)&pinADConfiguration, sizeof(pinADConfiguration));
+            break;
+        }
+        case PIN_IO_CONFIGURATION_WRITE:
+        {
+            serial.read((uint8_t *)&pinIOConfiguration, sizeof(pinIOConfiguration));
+            break;
+        }
+        case PIN_PWM_WRITE:
+        {
+            if (NULL != pinPwmControl)
+            {
+                delete[] pinPwmControl;
+                pinPwmControl = NULL;
+            }
+
+            uint8_t const length = serial.read();
+            pinPwmControl = (PinPwmWritePayload *)new uint8_t[length + sizeof(length)];
+            pinPwmControl->length = length;
+            serial.read(pinPwmControl->data, length);
             break;
         }
         case BLE_CONNECTED:
