@@ -67,27 +67,10 @@ void UartBle::runRx()
                 magnetometerCalibration = serial.read();
                 break;
             }
-            case MAGNETOMETER_CALIBRATION_REQUEST:
-            {
-                break;
-            }
             case PIN_DATA_WRITE:
             case PIN_DATA_UPDATE:
             {
-                if (NULL != pinData)
-                {
-                    delete[] pinData;
-                    pinData = NULL;
-                }
-
-                uint8_t const length = serial.read();
-                pinData = (PinDataWritePayload *)new uint8_t[length + sizeof(length)];
-                pinData->length = length;
-                serial.read(pinData->data, length);
-                break;
-            }
-            case PIN_DATA_REQUEST:
-            {
+                updateVLP(&pinData);
                 break;
             }
             case PIN_AD_CONFIGURATION_WRITE:
@@ -102,23 +85,37 @@ void UartBle::runRx()
             }
             case PIN_PWM_WRITE:
             {
-                if (NULL != pinPwmControl)
-                {
-                    delete[] pinPwmControl;
-                    pinPwmControl = NULL;
-                }
-
-                uint8_t const length = serial.read();
-                pinPwmControl = (PinPwmWritePayload *)new uint8_t[length + sizeof(length)];
-                pinPwmControl->length = length;
-                serial.read(pinPwmControl->data, length);
+                updateVLP(&pinPwmControl);
                 break;
             }
+            case LED_DATA_WRITE:
+            case LED_DATA_UPDATE:
+            {
+                serial.read(ledData, sizeof(ledData));
+                break;
+            }
+            case LED_TEXT_WRITE:
+            {
+                updateVLP(&ledRawText);
+                break;
+            }
+            case LED_SCROLLING_DELAY_WRITE:
+            {
+                serial.read((uint8_t *)&ledScrollDelay, sizeof(ledScrollDelay));
+                break;
+            }
+
+            // Payload-less messages
+            case MAGNETOMETER_CALIBRATION_REQUEST:
+            case PIN_DATA_REQUEST:
+            case LED_DATA_REQUEST:
             case BLE_CONNECTED:
             case BLE_DISCONNECTED:
             {
                 break;
             }
+
+            // Reserved IDs
             case UARTBLEMESSAGEID_MAX:
             case ID_RESERVED:
             {
@@ -129,4 +126,18 @@ void UartBle::runRx()
             Event(UARTBLE_ID, rawId);
         }
     }
+}
+
+void UartBle::updateVLP(VariableLengthPayload ** const vlp)
+{
+    if (NULL != *vlp)
+    {
+        delete[] *vlp;
+        *vlp = NULL;
+    }
+
+    uint8_t const length = serial.read();
+    *vlp = (VariableLengthPayload *)new uint8_t[length + sizeof(length)];
+    (*vlp)->length = length;
+    serial.read((*vlp)->data, length);
 }

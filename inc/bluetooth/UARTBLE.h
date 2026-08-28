@@ -22,16 +22,15 @@ enum UartBleMessageId
     PIN_AD_CONFIGURATION_WRITE,
     PIN_IO_CONFIGURATION_WRITE,
     PIN_PWM_WRITE,
+    LED_DATA_WRITE,
+    LED_DATA_UPDATE,
+    LED_DATA_REQUEST,
+    LED_TEXT_WRITE,
+    LED_SCROLLING_DELAY_WRITE,
     UARTBLEMESSAGEID_MAX
 };
 
-struct PinDataWritePayload
-{
-    uint8_t length;
-    uint8_t data[];
-};
-
-struct PinPwmWritePayload
+struct VariableLengthPayload
 {
     uint8_t length;
     uint8_t data[];
@@ -52,10 +51,14 @@ public:
     uint16_t magnetometerPeriodMs;
     uint8_t magnetometerCalibration;
 
-    PinDataWritePayload *pinData = NULL;
+    VariableLengthPayload *pinData = NULL;
     uint32_t pinADConfiguration;
     uint32_t pinIOConfiguration;
-    PinPwmWritePayload *pinPwmControl = NULL;
+    VariableLengthPayload *pinPwmControl = NULL;
+
+    uint8_t ledData[5];
+    uint16_t ledScrollDelay;
+    VariableLengthPayload *ledRawText = NULL;
 
     UartBle(NRF52Serial &serial);
 
@@ -65,5 +68,7 @@ public:
 
 private:
     Fiber *rx_fiber;
+
+    void updateVLP(VariableLengthPayload ** const vlp);
 };
 } // namespace codal

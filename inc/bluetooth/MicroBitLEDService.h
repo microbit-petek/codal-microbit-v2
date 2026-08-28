@@ -94,6 +94,11 @@ class MicroBitLEDService : public MicroBitBLEService
     // Data for each characteristic when they are held by Soft Device.
     MicroBitBLEChar      chars[ mbbs_cIdxCOUNT];
 
+    void serialDataWrite(Event);
+    void serialDataRequest(Event);
+    void serialTextWrite(Event);
+    void serialScrollingDelayWrite(Event);
+
     public:
     
     int              characteristicCount()          { return mbbs_cIdxCOUNT; };

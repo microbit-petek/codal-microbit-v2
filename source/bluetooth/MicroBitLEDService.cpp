@@ -27,6 +27,8 @@ DEALINGS IN THE SOFTWARE.
   * Class definition for the custom MicroBit LED Service.
   * Provides a BLE service to remotely read and write the state of the LED display.
   */
+#include "CodalFiber.h"
+#include "EventModel.h"
 #include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
@@ -73,6 +75,11 @@ MicroBitLEDService::MicroBitLEDService( BLEDevice &_ble, MicroBitDisplay &_displ
                          (uint8_t *)&speedValue,
                          sizeof(speedValue), sizeof(speedValue),
                          microbit_propWRITE | microbit_propREAD);
+
+    EventModel::defaultEventBus->listen(UARTBLE_ID, LED_DATA_WRITE, this, &MicroBitLEDService::serialDataWrite);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, LED_DATA_REQUEST, this, &MicroBitLEDService::serialDataRequest);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, LED_TEXT_WRITE, this, &MicroBitLEDService::serialTextWrite);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, LED_SCROLLING_DELAY_WRITE, this, &MicroBitLEDService::serialScrollingDelayWrite);
 }
 
 
@@ -81,38 +88,54 @@ MicroBitLEDService::MicroBitLEDService( BLEDevice &_ble, MicroBitDisplay &_displ
   */
 void MicroBitLEDService::onDataWritten( const microbit_ble_evt_write_t *params)
 {
-    uint8_t *data = (uint8_t *)params->data;
-
     if (params->handle == valueHandle( mbbs_cIdxMATRIX) && params->len > 0 && params->len < 6)
     {
-       // interrupt any animation that might be currently going on
-       display.stopAnimation();
-       for (int y=0; y<params->len; y++)
-            for (int x=0; x<5; x++)
-                display.image.setPixelValue(x, y, (data[y] & (0x01 << (4-x))) ? 255 : 0);
+        uartBle.sendMessage(LED_DATA_WRITE, params->data, params->len);
     }
 
     else if (params->handle == valueHandle( mbbs_cIdxTEXT))
     {
-        // Create a ManagedString representation from the UTF8 data.
-        // We do this explicitly to control the length (in case the string is not NULL terminated!)
-        ManagedString s((char *)params->data, params->len);
-
-        // interrupt any animation that might be currently going on
-        display.stopAnimation();
-
-        // Start the string scrolling and we're done.
-        display.scrollAsync(s, (int) speedValue);
+        uint8_t const payloadLength = params->len + 1;
+        uint8_t * const payload = new uint8_t[payloadLength];
+        payload[0] = params->len;
+        memcpy(&payload[1], params->data, params->len);
+        uartBle.sendMessage(LED_TEXT_WRITE, payload, payloadLength);
     }
 
     else if (params->handle == valueHandle( mbbs_cIdxSPEED) && params->len >= sizeof(speedValue))
     {
-        // Read the speed requested, and store it locally.
-        // We use this as the speed for all scroll operations subsquently initiated from BLE.
-        memcpy(&speedValue, params->data, sizeof(speedValue));
+        uartBle.sendMessage(LED_SCROLLING_DELAY_WRITE, params->data, params->len);
     }
 }
 
+void MicroBitLEDService::serialDataWrite(Event)
+{
+    memcpy(matrixValue, uartBle.ledData, sizeof(matrixValue));
+
+   // interrupt any animation that might be currently going on
+   display.stopAnimation();
+   for (uint8_t y=0; y<sizeof(matrixValue); y++)
+        for (int x=0; x<5; x++)
+            display.image.setPixelValue(x, y, (matrixValue[y] & (0x01 << (4-x))) ? 255 : 0);
+}
+
+void MicroBitLEDService::serialTextWrite(Event)
+{
+    // Create a ManagedString representation from the UTF8 data.
+    // We do this explicitly to control the length (in case the string is not NULL terminated!)
+    ManagedString s((char *)uartBle.ledRawText->data, uartBle.ledRawText->length);
+
+    // interrupt any animation that might be currently going on
+    display.stopAnimation();
+
+    // Start the string scrolling and we're done.
+    display.scrollAsync(s, (int) speedValue);
+}
+
+void MicroBitLEDService::serialScrollingDelayWrite(Event)
+{
+    speedValue = uartBle.ledScrollDelay;
+}
 
 /**
   * Callback. Invoked when any of our attributes are read via BLE.
@@ -122,20 +145,28 @@ void MicroBitLEDService::onDataRead( microbit_onDataRead_t *params)
 {
     if ( params->handle == valueHandle( mbbs_cIdxMATRIX))
     {
-        for (int y=0; y<5; y++)
-        {
-            matrixValue[y] = 0;
+        uartBle.sendMessage(LED_DATA_REQUEST, NULL, 0);
 
-            for (int x=0; x<5; x++)
-            {
-                if (display.image.getPixelValue(x, y))
-                    matrixValue[y] |= 0x01 << (4-x);
-            }
-        }
+        fiber_wait_for_event(UARTBLE_ID, LED_DATA_UPDATE);
 
-        params->data    = matrixValue;
-        params->length  = sizeof(matrixValue);
+        memcpy(matrixValue, uartBle.ledData, sizeof(matrixValue));
     }
+}
+
+void MicroBitLEDService::serialDataRequest(Event)
+{
+    for (int y=0; y<5; y++)
+    {
+        matrixValue[y] = 0;
+
+        for (int x=0; x<5; x++)
+        {
+            if (display.image.getPixelValue(x, y))
+                matrixValue[y] |= 0x01 << (4-x);
+        }
+    }
+
+    uartBle.sendMessage(LED_DATA_UPDATE, matrixValue, sizeof(matrixValue));
 }
 
 #endif
