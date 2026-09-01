@@ -126,6 +126,10 @@ class MicroBitPartialFlashingService : public MicroBitBLEService
     // Data for each characteristic when they are held by Soft Device.
     MicroBitBLEChar      chars[ mbbs_cIdxCOUNT];
 
+    void serialCommand(Event);
+    void serialRegionInfo(Event);
+    void serialStatus(Event);
+
     public:
     int              characteristicCount()          { return mbbs_cIdxCOUNT; };
     MicroBitBLEChar *characteristicPtr( int idx)    { return &chars[ idx]; };

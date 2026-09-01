@@ -104,6 +104,39 @@ void UartBle::runRx()
                 serial.read((uint8_t *)&ledScrollDelay, sizeof(ledScrollDelay));
                 break;
             }
+            case PARTIAL_FLASHING_COMMAND:
+            {
+                updateVLP(&partialFlashingMessage);
+                break;
+            }
+            case PARTIAL_FLASHING_REGION_INFO:
+            {
+                if (partialFlashingMessage != NULL)
+                {
+                    delete partialFlashingMessage;
+                    partialFlashingMessage = NULL;
+                }
+
+                uint8_t const regionInfoSize = 18;
+                partialFlashingMessage = (VariableLengthPayload *)new uint8_t[regionInfoSize + sizeof(VariableLengthPayload)];
+                partialFlashingMessage->length = regionInfoSize;
+                serial.read(partialFlashingMessage->data, regionInfoSize);
+                break;
+            }
+            case PARTIAL_FLASHING_STATUS:
+            {
+                if (partialFlashingMessage != NULL)
+                {
+                    delete partialFlashingMessage;
+                    partialFlashingMessage = NULL;
+                }
+
+                uint8_t const statusSize = 3;
+                partialFlashingMessage = (VariableLengthPayload *)new uint8_t[statusSize + sizeof(VariableLengthPayload)];
+                partialFlashingMessage->length = statusSize;
+                serial.read(partialFlashingMessage->data, statusSize);
+                break;
+            }
 
             // Payload-less messages
             case MAGNETOMETER_CALIBRATION_REQUEST:

@@ -27,6 +27,9 @@ enum UartBleMessageId
     LED_DATA_REQUEST,
     LED_TEXT_WRITE,
     LED_SCROLLING_DELAY_WRITE,
+    PARTIAL_FLASHING_COMMAND,
+    PARTIAL_FLASHING_REGION_INFO,
+    PARTIAL_FLASHING_STATUS,
     UARTBLEMESSAGEID_MAX
 };
 
@@ -59,6 +62,8 @@ public:
     uint8_t ledData[5];
     uint16_t ledScrollDelay;
     VariableLengthPayload *ledRawText = NULL;
+
+    VariableLengthPayload *partialFlashingMessage = NULL;
 
     UartBle(NRF52Serial &serial);
 

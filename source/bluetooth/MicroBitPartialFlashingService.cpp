@@ -75,6 +75,9 @@ MicroBitPartialFlashingService::MicroBitPartialFlashingService( BLEDevice &_ble,
 
     // Set up listener for SD writing
     messageBus.listen( MICROBIT_ID_PARTIAL_FLASHING, MICROBIT_EVT_ANY, this, &MicroBitPartialFlashingService::partialFlashingEvent);
+    messageBus.listen(UARTBLE_ID, PARTIAL_FLASHING_COMMAND, this, &MicroBitPartialFlashingService::serialCommand);
+    messageBus.listen(UARTBLE_ID, PARTIAL_FLASHING_REGION_INFO, this, &MicroBitPartialFlashingService::serialRegionInfo);
+    messageBus.listen(UARTBLE_ID, PARTIAL_FLASHING_STATUS, this, &MicroBitPartialFlashingService::serialStatus);
 }
 
 
@@ -83,13 +86,29 @@ MicroBitPartialFlashingService::MicroBitPartialFlashingService( BLEDevice &_ble,
   */
 void MicroBitPartialFlashingService::onDataWritten(const microbit_ble_evt_write_t *params)
 {
-    // Get data from BLE callback params
-    uint8_t *data = (uint8_t *)params->data;
+  if(params->handle == valueHandle( mbbs_cIdxCTRL) && params->len > 0)
+  {
+    uint8_t const payload_length = params->len + sizeof(VariableLengthPayload);
+    VariableLengthPayload * const command = (VariableLengthPayload *)new uint8_t[payload_length];
+    command->length = params->len;
 
-    if(params->handle == valueHandle( mbbs_cIdxCTRL) && params->len > 0)
-    {
+    memcpy(command->data, params->data, params->len);
+
+    uartBle.sendMessage(PARTIAL_FLASHING_COMMAND, command, payload_length);
+    delete[] command;
+  }
+}
+
+void MicroBitPartialFlashingService::serialCommand(Event)
+{
+    // Get data from BLE callback params
+    VariableLengthPayload * const command = uartBle.partialFlashingMessage;
+
+    uartBle.sendMessage(PARTIAL_FLASHING_COMMAND, uartBle.partialFlashingMessage, uartBle.partialFlashingMessage->length + 1);
+
+    
       // Switch CONTROL byte
-      switch(data[0]){
+      switch(command->data[0]){
         case REGION_INFO:
         {
           // Create instance of Memory Map to return info
@@ -109,29 +128,29 @@ void MicroBitPartialFlashingService::onDataWritten(const microbit_ble_evt_write_
           // Response:
           // Region and Region #
           buffer[0] =  0x00;
-          buffer[1] =  data[1];
+          buffer[1] =  command->data[1];
 
           // Start Address
-          buffer[2] = (memoryMap.memoryMapStore.memoryMap[data[1]].startAddress & 0xFF000000) >> 24;
-          buffer[3] = (memoryMap.memoryMapStore.memoryMap[data[1]].startAddress & 0x00FF0000) >> 16;
-          buffer[4] = (memoryMap.memoryMapStore.memoryMap[data[1]].startAddress & 0x0000FF00) >>  8;
-          buffer[5] = (memoryMap.memoryMapStore.memoryMap[data[1]].startAddress & 0x000000FF);
+          buffer[2] = (memoryMap.memoryMapStore.memoryMap[command->data[1]].startAddress & 0xFF000000) >> 24;
+          buffer[3] = (memoryMap.memoryMapStore.memoryMap[command->data[1]].startAddress & 0x00FF0000) >> 16;
+          buffer[4] = (memoryMap.memoryMapStore.memoryMap[command->data[1]].startAddress & 0x0000FF00) >>  8;
+          buffer[5] = (memoryMap.memoryMapStore.memoryMap[command->data[1]].startAddress & 0x000000FF);
 
           // End Address
-          buffer[6] = (memoryMap.memoryMapStore.memoryMap[data[1]].endAddress & 0xFF000000) >> 24;
-          buffer[7] = (memoryMap.memoryMapStore.memoryMap[data[1]].endAddress & 0x00FF0000) >> 16;
-          buffer[8] = (memoryMap.memoryMapStore.memoryMap[data[1]].endAddress & 0x0000FF00) >>  8;
-          buffer[9] = (memoryMap.memoryMapStore.memoryMap[data[1]].endAddress & 0x000000FF);
+          buffer[6] = (memoryMap.memoryMapStore.memoryMap[command->data[1]].endAddress & 0xFF000000) >> 24;
+          buffer[7] = (memoryMap.memoryMapStore.memoryMap[command->data[1]].endAddress & 0x00FF0000) >> 16;
+          buffer[8] = (memoryMap.memoryMapStore.memoryMap[command->data[1]].endAddress & 0x0000FF00) >>  8;
+          buffer[9] = (memoryMap.memoryMapStore.memoryMap[command->data[1]].endAddress & 0x000000FF);
 
           // Region Hash
-          memcpy(&buffer[10], &memoryMap.memoryMapStore.memoryMap[data[1]].hash, 8);
+          memcpy(&buffer[10], &memoryMap.memoryMapStore.memoryMap[command->data[1]].hash, 8);
 
           MICROBIT_DEBUG_DMESGF( "REGION_INFO %x - %x",
             (unsigned int) memoryMap.memoryMapStore.memoryMap[data[1]].startAddress,
             (unsigned int) memoryMap.memoryMapStore.memoryMap[data[1]].endAddress);
 
           // Send BLE Notification
-          notifyChrValue( mbbs_cIdxCTRL, (const uint8_t *)buffer, 18);
+          uartBle.sendMessage(PARTIAL_FLASHING_REGION_INFO, buffer, sizeof(buffer));
 
           // Reset packet count
           packetCount = 0;
@@ -144,7 +163,7 @@ void MicroBitPartialFlashingService::onDataWritten(const microbit_ble_evt_write_
         case FLASH_DATA:
         {
           // Process FLASH data packet
-          flashData(data);
+          flashData(command->data);
           break;
         }
         case END_OF_TRANSMISSION:
@@ -164,7 +183,7 @@ void MicroBitPartialFlashingService::onDataWritten(const microbit_ble_evt_write_
            */
           uint8_t flashNotificationBuffer[] = {MICROBIT_STATUS, PARTIAL_FLASHING_VERSION, MicroBitBLEManager::manager->getCurrentMode()};
           MICROBIT_DEBUG_DMESGF( "MICROBIT_STATUS version %d mode %d", (int)flashNotificationBuffer[1], (int)flashNotificationBuffer[2]);
-          notifyChrValue( mbbs_cIdxCTRL, (const uint8_t *)flashNotificationBuffer, sizeof(flashNotificationBuffer));
+          uartBle.sendMessage(PARTIAL_FLASHING_STATUS, flashNotificationBuffer, sizeof(flashNotificationBuffer));
           break;
         }
         case MICROBIT_RESET:
@@ -172,7 +191,7 @@ void MicroBitPartialFlashingService::onDataWritten(const microbit_ble_evt_write_
           /*
            * data[1] determines which mode to reset into: MICROBIT_MODE_PAIRING or MICROBIT_MODE_APPLICATION
            */
-           switch(data[1]) {
+           switch(command->data[1]) {
              case MICROBIT_MODE_PAIRING:
              {
                MICROBIT_DEBUG_DMESGF( "MICROBIT_RESET pairing");
@@ -189,10 +208,19 @@ void MicroBitPartialFlashingService::onDataWritten(const microbit_ble_evt_write_
            break;
         }
     }
-  }
+  
 }
 
+void MicroBitPartialFlashingService::serialRegionInfo(Event)
+{
+          notifyChrValue( mbbs_cIdxCTRL, (const uint8_t *)uartBle.partialFlashingMessage->data, 18);
+}
 
+void MicroBitPartialFlashingService::serialStatus(Event)
+{
+  
+          notifyChrValue( mbbs_cIdxCTRL, (const uint8_t *)uartBle.partialFlashingMessage->data, 3);
+}
 
 /**
   * @param data - A pointer to the data to process
