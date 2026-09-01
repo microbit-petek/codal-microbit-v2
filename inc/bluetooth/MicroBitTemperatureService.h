@@ -102,6 +102,12 @@ class MicroBitTemperatureService : public MicroBitBLEService
     // Data for each characteristic when they are held by Soft Device.
     MicroBitBLEChar      chars[ mbbs_cIdxCOUNT];
 
+    void serialBleConnected(Event);
+    void serialBleDisconnected(Event);
+    void serialPeriodWrite(Event);
+    void serialPeriodUpdate(Event);
+    void serialDataUpdate(Event);
+
     public:
     
     int              characteristicCount()          { return mbbs_cIdxCOUNT; };

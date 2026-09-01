@@ -137,6 +137,16 @@ void UartBle::runRx()
                 serial.read(partialFlashingMessage->data, statusSize);
                 break;
             }
+            case TEMPERATURE_PERIOD_WRITE:
+            case TEMPERATURE_PERIOD_UPDATE:
+            {
+                serial.read((uint8_t *)&temperaturePeriodMs, sizeof(temperaturePeriodMs));
+                break;
+            }
+            case TEMPERATURE_DATA_UPDATE:
+            {
+                temperatureData = serial.read();
+            }
 
             // Payload-less messages
             case MAGNETOMETER_CALIBRATION_REQUEST:

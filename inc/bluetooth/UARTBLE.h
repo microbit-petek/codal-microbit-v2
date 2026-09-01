@@ -30,6 +30,9 @@ enum UartBleMessageId
     PARTIAL_FLASHING_COMMAND,
     PARTIAL_FLASHING_REGION_INFO,
     PARTIAL_FLASHING_STATUS,
+    TEMPERATURE_PERIOD_WRITE,
+    TEMPERATURE_PERIOD_UPDATE,
+    TEMPERATURE_DATA_UPDATE,
     UARTBLEMESSAGEID_MAX
 };
 
@@ -64,6 +67,9 @@ public:
     VariableLengthPayload *ledRawText = NULL;
 
     VariableLengthPayload *partialFlashingMessage = NULL;
+
+    int8_t temperatureData;
+    uint16_t temperaturePeriodMs;
 
     UartBle(NRF52Serial &serial);
 

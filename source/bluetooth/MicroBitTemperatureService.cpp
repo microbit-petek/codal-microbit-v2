@@ -24,9 +24,10 @@ DEALINGS IN THE SOFTWARE.
 */
 
 /**
-  * Class definition for the custom MicroBit Temperature Service.
-  * Provides a BLE service to remotely read the silicon temperature of the nRF51822.
-  */
+ * Class definition for the custom MicroBit Temperature Service.
+ * Provides a BLE service to remotely read the silicon temperature of the nRF51822.
+ */
+#include "EventModel.h"
 #include "MicroBitBLEService.h"
 #include "MicroBitConfig.h"
 
@@ -36,112 +37,145 @@ DEALINGS IN THE SOFTWARE.
 
 using namespace codal;
 
-const uint16_t MicroBitTemperatureService::serviceUUID               = 0x6100;
-const uint16_t MicroBitTemperatureService::charUUID[ mbbs_cIdxCOUNT] = { 0x9250, 0x1b25 };
-
+const uint16_t MicroBitTemperatureService::serviceUUID = 0x6100;
+const uint16_t MicroBitTemperatureService::charUUID[mbbs_cIdxCOUNT] = {0x9250, 0x1b25};
 
 /**
-  * Constructor.
-  * Create a representation of the TemperatureService
-  * @param _ble The instance of a BLE device that we're running on.
-  * @param _thermometer An instance of MicroBitThermometer to use as our temperature source.
-  */
-MicroBitTemperatureService::MicroBitTemperatureService( BLEDevice &_ble, MicroBitThermometer &_thermometer, UartBle &uartBle) :
-    MicroBitBLEService(uartBle),
-    thermometer(_thermometer)
+ * Constructor.
+ * Create a representation of the TemperatureService
+ * @param _ble The instance of a BLE device that we're running on.
+ * @param _thermometer An instance of MicroBitThermometer to use as our temperature source.
+ */
+MicroBitTemperatureService::MicroBitTemperatureService(BLEDevice &_ble,
+                                                       MicroBitThermometer &_thermometer,
+                                                       UartBle &uartBle)
+    : MicroBitBLEService(uartBle), thermometer(_thermometer)
 {
     // Initialise our characteristic values.
-    temperatureDataCharacteristicBuffer   = 0;
+    temperatureDataCharacteristicBuffer = 0;
     temperaturePeriodCharacteristicBuffer = 0;
-    
+
     // Register the base UUID and create the service.
-    RegisterBaseUUID( bs_base_uuid);
-    CreateService( serviceUUID);
+    RegisterBaseUUID(bs_base_uuid);
+    CreateService(serviceUUID);
 
     // Create the data structures that represent each of our characteristics in Soft Device.
-    CreateCharacteristic( mbbs_cIdxDATA, charUUID[ mbbs_cIdxDATA],
-                         (uint8_t *)&temperatureDataCharacteristicBuffer,
-                         sizeof(temperatureDataCharacteristicBuffer), sizeof(temperatureDataCharacteristicBuffer),
-                         microbit_propREAD | microbit_propNOTIFY);
+    CreateCharacteristic(
+        mbbs_cIdxDATA, charUUID[mbbs_cIdxDATA], (uint8_t *)&temperatureDataCharacteristicBuffer,
+        sizeof(temperatureDataCharacteristicBuffer), sizeof(temperatureDataCharacteristicBuffer),
+        microbit_propREAD | microbit_propNOTIFY);
 
-    CreateCharacteristic( mbbs_cIdxPERIOD, charUUID[ mbbs_cIdxPERIOD],
+    CreateCharacteristic(mbbs_cIdxPERIOD, charUUID[mbbs_cIdxPERIOD],
                          (uint8_t *)&temperaturePeriodCharacteristicBuffer,
-                         sizeof(temperaturePeriodCharacteristicBuffer), sizeof(temperaturePeriodCharacteristicBuffer),
+                         sizeof(temperaturePeriodCharacteristicBuffer),
+                         sizeof(temperaturePeriodCharacteristicBuffer),
                          microbit_propREAD | microbit_propWRITE);
 
-    if ( getConnected())
-        listen( true);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, BLE_CONNECTED, this,
+                                        &MicroBitTemperatureService::serialBleConnected);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, BLE_DISCONNECTED, this,
+                                        &MicroBitTemperatureService::serialBleDisconnected);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, TEMPERATURE_PERIOD_WRITE, this,
+                                        &MicroBitTemperatureService::serialPeriodWrite);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, TEMPERATURE_PERIOD_UPDATE, this,
+                                        &MicroBitTemperatureService::serialPeriodUpdate);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, TEMPERATURE_DATA_UPDATE, this,
+                                        &MicroBitTemperatureService::serialDataUpdate);
 }
 
-
 /**
-  * Set up or tear down event listers
-  */
-void MicroBitTemperatureService::listen( bool yes)
+ * Set up or tear down event listers
+ */
+void MicroBitTemperatureService::listen(bool yes)
 {
     if (EventModel::defaultEventBus)
     {
-        if ( yes)
+        if (yes)
         {
             // Ensure thermometer is being updated
-            temperatureDataCharacteristicBuffer   = thermometer.getTemperature();
+            temperatureDataCharacteristicBuffer = thermometer.getTemperature();
             temperaturePeriodCharacteristicBuffer = thermometer.getPeriod();
-            EventModel::defaultEventBus->listen(MICROBIT_ID_THERMOMETER, MICROBIT_THERMOMETER_EVT_UPDATE, this, &MicroBitTemperatureService::temperatureUpdate, MESSAGE_BUS_LISTENER_IMMEDIATE);
+            EventModel::defaultEventBus->listen(
+                MICROBIT_ID_THERMOMETER, MICROBIT_THERMOMETER_EVT_UPDATE, this,
+                &MicroBitTemperatureService::temperatureUpdate, MESSAGE_BUS_LISTENER_IMMEDIATE);
         }
         else
         {
-            EventModel::defaultEventBus->ignore(MICROBIT_ID_THERMOMETER, MICROBIT_THERMOMETER_EVT_UPDATE, this, &MicroBitTemperatureService::temperatureUpdate);
+            EventModel::defaultEventBus->ignore(MICROBIT_ID_THERMOMETER,
+                                                MICROBIT_THERMOMETER_EVT_UPDATE, this,
+                                                &MicroBitTemperatureService::temperatureUpdate);
         }
     }
 }
 
-
 /**
-  * Invoked when BLE connects.
-  */
-void MicroBitTemperatureService::onConnect( const microbit_ble_evt_t *p_ble_evt)
+ * Invoked when BLE connects.
+ */
+void MicroBitTemperatureService::onConnect(const microbit_ble_evt_t *p_ble_evt) {}
+
+void MicroBitTemperatureService::serialBleConnected(Event)
 {
-    listen( true);
+    listen(true);
 }
 
-
 /**
-  * Invoked when BLE disconnects.
-  */
-void MicroBitTemperatureService::onDisconnect( const microbit_ble_evt_t *p_ble_evt)
+ * Invoked when BLE disconnects.
+ */
+void MicroBitTemperatureService::onDisconnect(const microbit_ble_evt_t *p_ble_evt) {}
+
+void MicroBitTemperatureService::serialBleDisconnected(Event)
 {
-    listen( false);
+    listen(false);
 }
 
-
 /**
-  * Callback. Invoked when any of our attributes are written via BLE.
-  */
+ * Callback. Invoked when any of our attributes are written via BLE.
+ */
 void MicroBitTemperatureService::onDataWritten(const microbit_ble_evt_write_t *params)
 {
-    if (params->handle == valueHandle( mbbs_cIdxPERIOD) && params->len >= sizeof(temperaturePeriodCharacteristicBuffer))
+    if (params->handle == valueHandle(mbbs_cIdxPERIOD) &&
+        params->len >= sizeof(temperaturePeriodCharacteristicBuffer))
     {
-        memcpy(&temperaturePeriodCharacteristicBuffer, params->data, sizeof(temperaturePeriodCharacteristicBuffer));
-        thermometer.setPeriod(temperaturePeriodCharacteristicBuffer);
-
-        // The accelerometer will choose the nearest period to that requested that it can support
-        // Read back the ACTUAL period it is using, and report this back.
-        temperaturePeriodCharacteristicBuffer = thermometer.getPeriod();
-        setChrValue( mbbs_cIdxPERIOD, (const uint8_t *)&temperaturePeriodCharacteristicBuffer, sizeof(temperaturePeriodCharacteristicBuffer));
+        memcpy(&temperaturePeriodCharacteristicBuffer, params->data,
+               sizeof(temperaturePeriodCharacteristicBuffer));
+        uartBle.sendMessage(TEMPERATURE_PERIOD_WRITE, &temperaturePeriodCharacteristicBuffer,
+                            sizeof(temperaturePeriodCharacteristicBuffer));
     }
 }
 
+void MicroBitTemperatureService::serialPeriodWrite(Event)
+{
+    temperaturePeriodCharacteristicBuffer = uartBle.temperaturePeriodMs;
+    thermometer.setPeriod(temperaturePeriodCharacteristicBuffer);
+    temperaturePeriodCharacteristicBuffer = thermometer.getPeriod();
+    uartBle.sendMessage(TEMPERATURE_PERIOD_UPDATE, &temperaturePeriodCharacteristicBuffer,
+                        sizeof(temperaturePeriodCharacteristicBuffer));
+}
+
+void MicroBitTemperatureService::serialPeriodUpdate(Event)
+{
+    temperaturePeriodCharacteristicBuffer = uartBle.temperaturePeriodMs;
+
+    // The accelerometer will choose the nearest period to that requested that it can support
+    // Read back the ACTUAL period it is using, and report this back.
+    setChrValue(mbbs_cIdxPERIOD, (const uint8_t *)&temperaturePeriodCharacteristicBuffer,
+                sizeof(temperaturePeriodCharacteristicBuffer));
+}
 
 /**
-  * Temperature update callback
-  */
+ * Temperature update callback
+ */
 void MicroBitTemperatureService::temperatureUpdate(MicroBitEvent)
 {
-    if ( getConnected())
-    {
-        temperatureDataCharacteristicBuffer = thermometer.getTemperature();
-        notifyChrValue( mbbs_cIdxDATA, (uint8_t *)&temperatureDataCharacteristicBuffer, sizeof(temperatureDataCharacteristicBuffer));
-    }
+    temperatureDataCharacteristicBuffer = thermometer.getTemperature();
+    uartBle.sendMessage(TEMPERATURE_DATA_UPDATE, &temperatureDataCharacteristicBuffer,
+                        sizeof(temperatureDataCharacteristicBuffer));
 }
 
+void MicroBitTemperatureService::serialDataUpdate(Event)
+{
+    temperatureDataCharacteristicBuffer = uartBle.temperatureData;
+    notifyChrValue(mbbs_cIdxDATA, (uint8_t *)&temperatureDataCharacteristicBuffer,
+                   sizeof(temperatureDataCharacteristicBuffer));
+}
 #endif
