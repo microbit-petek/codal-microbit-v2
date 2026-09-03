@@ -1,8 +1,15 @@
 #include "UARTBLE.h"
+#include "CodalFiber.h"
+#include "EventModel.h"
+#include "Timer.h"
 
 using namespace codal;
 
-UartBle::UartBle(NRF52Serial &serial) : serial(serial) {}
+
+UartBle::UartBle(NRF52Serial &serial) : serial(serial) {
+    EventModel::defaultEventBus->listen(UARTBLE_ID, UARTBLE_REPORT_IDLE, this, &UartBle::reportIdle);
+    system_timer_event_every(1000, UARTBLE_ID, UARTBLE_REPORT_IDLE);
+}
 
 void UartBle::sendMessage(uint8_t const id, void const *const payload, uint8_t const payloadLength)
 {
@@ -27,7 +34,7 @@ void UartBle::runRx()
             uint8_t rawId = serial.read();
 
 
-            if (rawId >= UARTBLEMESSAGEID_MAX)
+            if (rawId >= UARTBLEMESSAGEID_MAX && rawId != INTERFACE_IDLE_REPORT_TO_BOUNCE)
             {
                 continue;
             }
@@ -146,13 +153,30 @@ void UartBle::runRx()
             case TEMPERATURE_DATA_UPDATE:
             {
                 temperatureData = serial.read();
+                break;
+            }
+
+            // Diagnostic messages
+            case INTERFACE_IDLE_REPORT_TO_BOUNCE:
+            {
+                uint16_t data;
+                serial.read((uint8_t *)&data, sizeof(data));
+                sendMessage(INTERFACE_IDLE_REPORT, &data, sizeof(data));
+                continue;
             }
 
             // Payload-less messages
             case MAGNETOMETER_CALIBRATION_REQUEST:
             case PIN_DATA_REQUEST:
             case LED_DATA_REQUEST:
+            {
+                break;
+            }
             case BLE_CONNECTED:
+            {
+                isTarget = true;
+                break;
+            }
             case BLE_DISCONNECTED:
             {
                 break;
@@ -183,4 +207,16 @@ void UartBle::updateVLP(VariableLengthPayload ** const vlp)
     *vlp = (VariableLengthPayload *)new uint8_t[length + sizeof(length)];
     (*vlp)->length = length;
     serial.read((*vlp)->data, length);
+}
+
+void UartBle::reportIdle(Event)
+{
+    uint8_t const id = isTarget ? TARGET_IDLE_REPORT : INTERFACE_IDLE_REPORT_TO_BOUNCE;
+    uint16_t const idleTime = scheduler_get_idle_time_percentage_bps();
+    sendMessage(id, &idleTime, sizeof(idleTime));
+}
+
+void UartBle::connected(bool yes)
+{
+    isTarget = yes;
 }

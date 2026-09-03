@@ -33,8 +33,14 @@ enum UartBleMessageId
     TEMPERATURE_PERIOD_WRITE,
     TEMPERATURE_PERIOD_UPDATE,
     TEMPERATURE_DATA_UPDATE,
-    UARTBLEMESSAGEID_MAX
+    UARTBLEMESSAGEID_MAX,
+
+    INTERFACE_IDLE_REPORT = 0xaa,
+    TARGET_IDLE_REPORT,
+    INTERFACE_IDLE_REPORT_TO_BOUNCE,
 };
+
+#define UARTBLE_REPORT_IDLE UARTBLEMESSAGEID_MAX + 1
 
 struct VariableLengthPayload
 {
@@ -77,9 +83,16 @@ public:
 
     void sendMessage(uint8_t const id, void const *const payload, uint8_t const payloadLength);
 
+    void connected(bool isTarget);
+
 private:
     Fiber *rx_fiber;
 
+    bool isTarget = false;
+
     void updateVLP(VariableLengthPayload ** const vlp);
+
+    void reportIdle(Event);
+
 };
 } // namespace codal

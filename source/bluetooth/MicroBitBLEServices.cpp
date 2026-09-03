@@ -116,6 +116,7 @@ void MicroBitBLEServices::onBleEvent( ble_evt_t const * p_ble_evt)
     case BLE_GAP_EVT_CONNECTED:
     {
         bs_services[0]->uartBle.sendMessage(BLE_CONNECTED, NULL, 0);
+        bs_services[0]->uartBle.connected(false);
         break;
     }
     case BLE_GAP_EVT_DISCONNECTED:
