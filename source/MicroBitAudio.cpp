@@ -25,10 +25,8 @@ DEALINGS IN THE SOFTWARE.
 
 #include "MicroBitAudio.h"
 #include "ErrorNo.h"
-#include "MicroBit.h"
 #include "NRF52PWM.h"
 #include "NRF52ResourceManager.h"
-#include "Synthesizer.h"
 #include "SoundExpressions.h"
 #include "SoundEmojiSynthesizer.h"
 #include "StreamSplitter.h"
@@ -134,7 +132,7 @@ int MicroBitAudio::enable()
 { 
     if (pwm == NULL)
     {
-        pwm = NRF52ResourceManager::get().pwmRequest(mixer, NRF_PWM1, 44100);
+        pwm = GET_RESOURCE(PWM, 1, mixer, *this, 44100);
         pwm->setDecoderMode( PWM_DECODER_LOAD_Common );
 
         mixer.setSampleRange( pwm->getSampleRange() );
@@ -242,7 +240,7 @@ int MicroBitAudio::setSleep(bool doSleep)
         if (pwm)
         {
             status |= MICROBIT_AUDIO_STATUS_DEEPSLEEP;
-            NRF52ResourceManager::get().pwmRelease(pwm);
+            RELEASE_RESOURCE(pwm);
         }
         this->micSleepState = this->micEnabled;
         deactivateMic();
@@ -277,14 +275,17 @@ bool MicroBitAudio::isPlaying()
 
 ErrorCode MicroBitAudio::releaseResource(Resource &resource)
 {
-    if ((NRF52PWM *)&resource == pwm)
-    {
-        NRF52ResourceManager::get().pwmRelease(pwm);
-        return DEVICE_OK;
-    }
-    else
+    if ((NRF52PWM *)&resource != pwm)
     {
         return DEVICE_INVALID_PARAMETER;
     }
+
+    if (isResourceLocked())
+    {
+        return DEVICE_BUSY;
+    }
+
+    pwm = NULL;
+    return DEVICE_OK;
 }
 
