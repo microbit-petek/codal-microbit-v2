@@ -182,6 +182,15 @@ void UartBle::runRx()
                 break;
             }
 
+            // Ignored IDs
+            case INTERFACE_IDLE_REPORT:
+            case TARGET_IDLE_REPORT:
+            {
+                uint16_t bin;
+                serial.read((uint8_t *)&bin, sizeof(bin));
+                continue;
+            }
+
             // Reserved IDs
             case UARTBLEMESSAGEID_MAX:
             case ID_RESERVED:
