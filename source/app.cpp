@@ -1,6 +1,12 @@
-#include "pxt.h"
+// #include "pxt.h"
+#include "CodalComponent.h"
+#include "Timer.h"
 #include "jdlow.h"
 #include "mbbridge.h"
+#include "Event.h"
+#include "pxt_glue.h"
+
+using namespace codal;
 
 #define FRAME_EXT_FLAG 0x80
 
@@ -56,7 +62,7 @@ extern "C" void app_queue_annouce() {
 int copyAndAppend(LinkedFrame *volatile *q, jd_frame_t *frame, int max, uint8_t *data) {
     auto buf = (LinkedFrame *)malloc(JD_FRAME_SIZE(frame) + LINKED_FRAME_HEADER_SIZE);
 
-    buf->timestamp_ms = current_time_ms();
+    buf->timestamp_ms = system_timer_current_time();
 
     if (data) {
         memcpy(&buf->frame, frame, JD_SERIAL_FULL_HEADER_SIZE);
@@ -206,7 +212,7 @@ extern "C" int jd_pin_num() {
 //%
 void __physStart() {
     jd_init();
-    sendJDFrame = sendExtFrame;
+    // sendJDFrame = sendExtFrame;
 #if defined(MICROBIT_CODAL) && MICROBIT_CODAL
 #if CONFIG_ENABLED(DEVICE_BLE) && CONFIG_ENABLED(JACDAC_BLE_TRANSPORT)
     jdble_init();

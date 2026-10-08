@@ -28,6 +28,7 @@ DEALINGS IN THE SOFTWARE.
 #include "MicroBitDevice.h"
 #include "MicroBitMemoryMap.h"
 #include "CodalDmesg.h"
+#include "jdlow.h"
 
 using namespace codal;
 
@@ -297,6 +298,8 @@ int MicroBit::init()
     NRF_CLOCK->TASKS_HFCLKSTART = 1;
     while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
 #endif
+
+    jd_init();
 
     // Deschedule for a little while, just to allow for any components that finialise initialisation
     // as a background task, and to allow the power mamanger to repsonse to background events from the KL27
