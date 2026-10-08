@@ -6,7 +6,6 @@
 
 // this is timing overhead (in us) of starting transmission
 // see set_tick_timer() for how to calibrate this
-#include <cstdint>
 #ifndef JD_WR_OVERHEAD
 #define JD_WR_OVERHEAD 8
 #endif

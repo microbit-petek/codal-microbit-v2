@@ -1,4 +1,6 @@
 // #include "pxt.h"
+#include "EventModel.h"
+#include "MicroBitBLEService.h"
 #include "jdlow.h"
 // #include "mbbridge.h"
 
@@ -65,6 +67,9 @@ JacdacBLE::JacdacBLE(BLEDevice &_ble, UartBle &uartBle, uint8_t rxBufferSize, ui
                           diagBuffer,
                           1, sizeof(jd_diagnostics_t),
                           microbit_propREAD | microbit_propWRITE );
+
+    EventModel::defaultEventBus->listen(UARTBLE_ID, JACDAC_WRITE, this, &JacdacBLE::serialWrite);
+    EventModel::defaultEventBus->listen(UARTBLE_ID, JACDAC_UPDATE, this, &JacdacBLE::serialUpdate);
 }
 
 
@@ -112,7 +117,16 @@ void JacdacBLE::onDataWritten(const microbit_ble_evt_write_t *params)
 
         if (this->rxChunkCounter == 0)
         {
-            MicroBitEvent(DEVICE_ID_JACDAC_BLE, MICROBIT_JACDAC_S_EVT_RX);
+            uint8_t const frameLength = rxPointer - rxBuffer;
+            uint8_t const payloadLength = frameLength + sizeof(VariableLengthPayload);
+            
+            VariableLengthPayload * const frame = (VariableLengthPayload *)malloc(payloadLength);
+
+            memcpy(frame->data, rxBuffer, frameLength);
+            frame->length = frameLength;
+
+            uartBle.sendMessage(JACDAC_WRITE, frame, payloadLength);
+            free(frame);
             this->rxPointer = this->rxBuffer;
         }
     }
@@ -121,6 +135,12 @@ void JacdacBLE::onDataWritten(const microbit_ble_evt_write_t *params)
     {
         indicateChrValue(mbbs_cIdxDIAG, diagBuffer, sizeof(jd_diagnostics_t));
     }
+}
+
+void JacdacBLE::serialWrite(Event)
+{
+    memcpy(rxBuffer, uartBle.jacdacFrame->data, uartBle.jacdacFrame->length);
+    MicroBitEvent(DEVICE_ID_JACDAC_BLE, MICROBIT_JACDAC_S_EVT_RX);
 }
 
 /**
@@ -174,6 +194,11 @@ int JacdacBLE::send(uint8_t *buf, int length)
     }
 
     return MICROBIT_OK;
+}
+
+void JacdacBLE::serialUpdate(Event)
+{
+    send(uartBle.jacdacFrame->data, uartBle.jacdacFrame->length);
 }
 
 

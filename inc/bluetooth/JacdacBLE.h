@@ -103,6 +103,11 @@ class JacdacBLE : public MicroBitBLEService
     
     int              characteristicCount()          { return mbbs_cIdxCOUNT; };
     MicroBitBLEChar *characteristicPtr( int idx)    { return &chars[ idx]; };
+
+    private:
+
+    void serialWrite(Event);
+    void serialUpdate(Event);
 };
 
 #endif // DEVICE_BLE

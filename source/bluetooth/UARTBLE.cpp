@@ -155,6 +155,11 @@ void UartBle::runRx()
                 temperatureData = serial.read();
                 break;
             }
+            case JACDAC_WRITE:
+            case JACDAC_UPDATE:
+            {
+                updateVLP(&jacdacFrame);
+            }
 
             // Diagnostic messages
             case INTERFACE_IDLE_REPORT_TO_BOUNCE:

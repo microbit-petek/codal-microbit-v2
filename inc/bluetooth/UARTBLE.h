@@ -33,6 +33,8 @@ enum UartBleMessageId
     TEMPERATURE_PERIOD_WRITE,
     TEMPERATURE_PERIOD_UPDATE,
     TEMPERATURE_DATA_UPDATE,
+    JACDAC_UPDATE,
+    JACDAC_WRITE,
     UARTBLEMESSAGEID_MAX,
 
     INTERFACE_IDLE_REPORT = 0xaa,
@@ -76,6 +78,8 @@ public:
 
     int8_t temperatureData;
     uint16_t temperaturePeriodMs;
+
+    VariableLengthPayload *jacdacFrame = NULL;
 
     UartBle(NRF52Serial &serial);
 
