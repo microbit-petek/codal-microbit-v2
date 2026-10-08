@@ -89,13 +89,13 @@ void MicroBitPartialFlashingService::onDataWritten(const microbit_ble_evt_write_
   if(params->handle == valueHandle( mbbs_cIdxCTRL) && params->len > 0)
   {
     uint8_t const payload_length = params->len + sizeof(VariableLengthPayload);
-    VariableLengthPayload * const command = (VariableLengthPayload *)new uint8_t[payload_length];
+    VariableLengthPayload * const command = (VariableLengthPayload *)malloc(payload_length);
     command->length = params->len;
 
     memcpy(command->data, params->data, params->len);
 
     uartBle.sendMessage(PARTIAL_FLASHING_COMMAND, command, payload_length);
-    delete[] command;
+    free(command);
   }
 }
 

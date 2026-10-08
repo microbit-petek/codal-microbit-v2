@@ -120,12 +120,12 @@ void UartBle::runRx()
             {
                 if (partialFlashingMessage != NULL)
                 {
-                    delete partialFlashingMessage;
+                    free(partialFlashingMessage);
                     partialFlashingMessage = NULL;
                 }
 
                 uint8_t const regionInfoSize = 18;
-                partialFlashingMessage = (VariableLengthPayload *)new uint8_t[regionInfoSize + sizeof(VariableLengthPayload)];
+                partialFlashingMessage = (VariableLengthPayload *)malloc(regionInfoSize + sizeof(VariableLengthPayload));
                 partialFlashingMessage->length = regionInfoSize;
                 serial.read(partialFlashingMessage->data, regionInfoSize);
                 break;
@@ -134,12 +134,12 @@ void UartBle::runRx()
             {
                 if (partialFlashingMessage != NULL)
                 {
-                    delete partialFlashingMessage;
+                    free(partialFlashingMessage);
                     partialFlashingMessage = NULL;
                 }
 
                 uint8_t const statusSize = 3;
-                partialFlashingMessage = (VariableLengthPayload *)new uint8_t[statusSize + sizeof(VariableLengthPayload)];
+                partialFlashingMessage = (VariableLengthPayload *)malloc(statusSize + sizeof(VariableLengthPayload));
                 partialFlashingMessage->length = statusSize;
                 serial.read(partialFlashingMessage->data, statusSize);
                 break;
@@ -208,12 +208,12 @@ void UartBle::updateVLP(VariableLengthPayload ** const vlp)
 {
     if (NULL != *vlp)
     {
-        delete[] *vlp;
+        free(*vlp);
         *vlp = NULL;
     }
 
     uint8_t const length = serial.read();
-    *vlp = (VariableLengthPayload *)new uint8_t[length + sizeof(length)];
+    *vlp = (VariableLengthPayload *)malloc(length + sizeof(length));
     (*vlp)->length = length;
     serial.read((*vlp)->data, length);
 }
