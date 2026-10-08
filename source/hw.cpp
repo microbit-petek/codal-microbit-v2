@@ -1,7 +1,14 @@
-#include "pxt.h"
+// #include "pxt.h"
+#include "MicroBit.h"
+#include "Timer.h"
 #include "jdlow.h"
 
 #include "ZSingleWireSerial.h"
+
+#include "EventModel.h"
+
+using namespace codal;
+extern MicroBit uBit;
 
 //#define ENABLE_PIN_LOG 1
 
@@ -98,6 +105,9 @@ static void pin_pulse() {
 }
 
 void jd_panic(void) {
+    // From pxt-common-packages
+    #define PANIC_JACDAC 925
+
     target_panic(PANIC_JACDAC);
 }
 
@@ -118,7 +128,7 @@ void tim_init() {
 
 REAL_TIME_FUNC
 uint64_t tim_get_micros(void) {
-    return current_time_us();
+    return system_timer_current_time_us();
 }
 
 // timer overhead measurements (without any delta compensation)
@@ -222,10 +232,10 @@ static void sws_done(uint16_t errCode) {
 void uart_init_() {
     // allow disabling SWS with the following anywhere in the TS code:
     // namespace userconfig { export const PIN_JACK_TX = 0xdead }
-    if (getConfig(CFG_PIN_JACK_TX, 0) == 0xdead) {
-        DMESG("Jacdac SWS disabled");
-        return;
-    }
+    // if (getConfig(CFG_PIN_JACK_TX, 0) == 0xdead) {
+    //     DMESG("Jacdac SWS disabled");
+    //     return;
+    // }
 
 #if defined(MICROBIT_CODAL) && MICROBIT_CODAL
     sws = new ZSingleWireSerial(uBit.io.P12);
