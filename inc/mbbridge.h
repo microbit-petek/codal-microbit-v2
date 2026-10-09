@@ -1,6 +1,9 @@
 #ifndef __MBBRIDGE_H
 #define __MBBRIDGE_H
 
+#include "MicroBitBLEService.h"
+#include "jdprotocol.h"
+
 #if defined(MICROBIT_CODAL) && MICROBIT_CODAL
 namespace pxt {
 extern void (*logJDFrame)(const uint8_t *data);
@@ -8,7 +11,7 @@ extern void (*sendJDFrame)(const uint8_t *data);
 } // namespace pxt
 namespace jacdac {
 void mbbridge_init();
-void jdble_init();
+void jdble_init(codal::UartBle &serial);
 } // namespace jacdac
 #endif
 

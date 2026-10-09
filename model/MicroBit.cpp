@@ -28,7 +28,7 @@ DEALINGS IN THE SOFTWARE.
 #include "MicroBitDevice.h"
 #include "MicroBitMemoryMap.h"
 #include "CodalDmesg.h"
-#include "jdlow.h"
+#include "app.h"
 
 using namespace codal;
 
@@ -299,8 +299,9 @@ int MicroBit::init()
     while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
 #endif
 
-    jd_init();
-
+    // Intialise the Jacdac stack
+    jacdac::jdAppStart();
+    
     // Deschedule for a little while, just to allow for any components that finialise initialisation
     // as a background task, and to allow the power mamanger to repsonse to background events from the KL27
     // before any user code begins running.

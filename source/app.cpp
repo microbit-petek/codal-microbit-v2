@@ -5,6 +5,7 @@
 #include "mbbridge.h"
 #include "Event.h"
 #include "pxt_glue.h"
+#include "app.h"
 
 using namespace codal;
 
@@ -18,6 +19,11 @@ using namespace codal;
 #define EVT_DATA_READY 1
 #define EVT_QUEUE_ANNOUNCE 100
 #define EVT_TX_EMPTY 101
+
+namespace pxt {
+void (*logJDFrame)(const uint8_t *data);
+void (*sendJDFrame)(const uint8_t *data);    
+}
 
 namespace jacdac {
 
@@ -210,12 +216,13 @@ extern "C" int jd_pin_num() {
 #endif
 
 //%
-void __physStart() {
+void jdAppStart() {
     jd_init();
-    // sendJDFrame = sendExtFrame;
+    pxt::sendJDFrame = sendExtFrame;
 #if defined(MICROBIT_CODAL) && MICROBIT_CODAL
 #if CONFIG_ENABLED(DEVICE_BLE) && CONFIG_ENABLED(JACDAC_BLE_TRANSPORT)
-    jdble_init();
+    // Handled at application level due to needing access to UartBle
+    // jdble_init();
 #else
     mbbridge_init();
 #endif
