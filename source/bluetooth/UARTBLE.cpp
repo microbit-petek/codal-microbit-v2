@@ -159,6 +159,7 @@ void UartBle::runRx()
             case JACDAC_UPDATE:
             {
                 updateVLP(&jacdacFrame);
+                break;
             }
 
             // Diagnostic messages
